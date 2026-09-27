@@ -1,0 +1,237 @@
+// Remy AI — Prisma schema (Phase 3). DB: local Postgres. ORM: Prisma.
+// Run: pnpm --filter api prisma:validate / prisma:migrate (needs Docker db up)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceType {
+  personal
+  executive
+  client
+  team
+}
+
+enum PermissionLevel {
+  always
+  ask
+  never
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  denied
+  executed
+}
+
+model Workspace {
+  id        String        @id @default(cuid())
+  type      WorkspaceType @default(personal)
+  name      String
+  userId    String
+  prefs     Json          @default("{}")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  tasks     Task[]
+  events    Event[]
+  emails    Email[]
+  documents Document[]
+  followups Followup[]
+  memories  Memory[]
+  approvals Approval[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String
+  status      String    @default("open") // open|done|overdue
+  priority    String    @default("normal") // low|normal|high
+  dueAt       DateTime?
+  recurrence  String?
+  parentId    String?
+  assignee    String?
+  source      String    @default("manual") // chat|manual|remy
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, dueAt])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String
+  startsAt    DateTime
+  endsAt      DateTime
+  attendees   Json      @default("[]")
+  location    String?
+  status      String    @default("confirmed")
+  externalId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, startsAt])
+}
+
+model Email {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  externalId  String?   @unique
+  threadId    String?
+  from        String
+  subject     String
+  snippet     String?
+  bodyRef     String? // R2 key or external ref; minimal body stored
+  importance  String    @default("normal") // low|normal|high
+  needsReply  Boolean   @default(false)
+  status      String    @default("open") // open|replied|archived
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String
+  type        String    @default("doc")
+  storageKey  String // Cloudflare R2 key
+  summary     String?
+  extracted   Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Followup {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  kind        String // email|meeting|doc|payment|task
+  refId       String
+  dueAt       DateTime?
+  status      String    @default("open") // open|nudged|resolved
+  lastNudgedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, status])
+}
+
+model Memory {
+  id          String    @id @default(cuid())
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  scope       String    @default("global") // global|workspace
+  key         String
+  value       String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, workspaceId, key])
+}
+
+// NOTE: vector embedding column for memory/doc retrieval added in Phase 6
+// via raw SQL: ALTER TABLE "Memory" ADD COLUMN embedding vector(1536);
+
+model Permission {
+  id        String @id @default(cuid())
+  userId    String
+  scope     String @default("global") // global|workspace:<id>
+  action    String // sendEmail|schedule|shareDoc|payment
+  level     PermissionLevel @default(ask)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, scope, action])
+}
+
+model Approval {
+  id          String         @id @default(cuid())
+  workspaceId String
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  action      String
+  payload     Json
+  status      ApprovalStatus @default(pending)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([workspaceId, status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  actor     String // user|remy
+  action    String
+  target    String
+  result    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// --- Better Auth managed tables (minimal; extended by Better Auth CLI) ---
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId            String // google|microsoft|...
+  accountId             String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
