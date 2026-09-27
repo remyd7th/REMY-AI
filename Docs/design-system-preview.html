@@ -3,80 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Remy AI — Design System Preview</title>
+<title>Remy AI — Design System Preview (Bright)</title>
 <style>
-:root{--bg:#F8FAFC;--surface:#fff;--ink:#0F172A;--muted:#64748B;--line:#E2E8F0;--primary:#0F766E;--primary-ink:#fff;--amber:#B45309;--amber-bg:#FEF3C7;--red:#DC2626;--red-bg:#FEE2E2;--radius:10px;--font:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+:root{--bg:#FFFFFF;--surface:#fff;--ink:#0A0A0F;--muted:#3F3F46;--line:#0A0A0F;--primary:#6D28D9;--primary-ink:#fff;--pink:#EC4899;--cyan:#06B6D4;--lime:#A3E635;--sun:#FFC800;--red:#FF3B30;--radius:10px;--font:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--shadow:4px 4px 0 #0A0A0F}
 *{box-sizing:border-box}body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink)}
 .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 64px}
-.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:32px;margin:6px 0 4px}h2{font-size:20px;margin:36px 0 12px}.sub{color:var(--muted);margin:0 0 16px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+h1{font-size:34px;margin:6px 0 4px;letter-spacing:-.02em}h2{font-size:20px;margin:36px 0 12px}.sub{color:var(--muted);margin:0 0 16px}
 .grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
-.swatch{height:56px;border-radius:8px;border:1px solid var(--line)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.swatch{height:56px;border-radius:8px;border:2px solid var(--line)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 14px;font-size:14px;cursor:pointer}
-.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
-.btn.quiet{background:transparent}.btn.danger{color:var(--red);border-color:#FECACA}
-.badge{display:inline-flex;align-items:center;font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:#F1F5F9}
-.badge.attn{background:var(--amber-bg);border-color:#FDE68A;color:var(--amber)}
-.badge.over{background:var(--red-bg);border-color:#FECACA;color:var(--red)}
-.badge.ok{background:#DCFCE7;border-color:#BBF7D0;color:#15803D}
-.input{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;width:100%}
-.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px}
-.approval{border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:10px;background:#fff;padding:14px}
-.task{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
-.dot{width:10px;height:10px;border-radius:50%;margin-top:5px}
-.chat{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.bubble{max-width:78%;padding:10px 13px;border-radius:12px;font-size:14px;margin:8px 0}
-.me{background:var(--primary);color:#fff;margin-left:auto}.remy{background:#F1F5F9}
-.type div{padding:8px 0;border-bottom:1px dashed var(--line)}
-code{background:#F1F5F9;padding:2px 6px;border-radius:6px;font-size:13px}
-.topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.btn{border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 #0A0A0F}
+.btn.primary{background:var(--primary);border-color:var(--line);color:#fff}
+.btn.pink{background:var(--pink);color:#fff}.btn.cyan{background:var(--cyan);color:#062A30}.btn.lime{background:var(--lime);color:#1A2E05}
+.btn.quiet{background:#fff;box-shadow:none}.btn.danger{background:var(--red);color:#fff}
+.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--ink)}
+.badge.attn{background:var(--sun);color:#1A1000}
+.badge.over{background:var(--red);color:#fff}
+.badge.ok{background:var(--lime);color:#1A2E05}
+.badge.info{background:var(--cyan);color:#062A30}
+.badge.vip{background:var(--primary);color:#fff}
+.input{border:2px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;width:100%;font-weight:600}
+.chip{border:2px solid var(--line);background:var(--sun);color:#1A1000;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800;box-shadow:2px 2px 0 #0A0A0F}
+.chip.alt{background:var(--cyan);color:#062A30}.chip.alt2{background:#fff}
+.approval{border:2px solid var(--line);border-left:8px solid var(--primary);border-radius:10px;background:#fff;padding:14px;box-shadow:var(--shadow)}
+.task{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:2px solid var(--line)}
+.dot{width:12px;height:12px;border-radius:50%;margin-top:4px;border:2px solid var(--line)}
+.chat{background:#fff;border:2px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.bubble{max-width:78%;padding:10px 13px;border-radius:12px;font-size:14px;font-weight:600;margin:8px 0;border:2px solid var(--line)}
+.me{background:var(--primary);color:#fff;margin-left:auto}.remy{background:var(--sun);color:#1A1000}
+.type div{padding:8px 0;border-bottom:2px dashed var(--line)}
+code{background:var(--lime);padding:2px 6px;border-radius:6px;font-size:13px;border:1px solid var(--line)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--primary);color:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow)}
+.topbar .badge{background:#fff}
+.hero{background:var(--line);color:#fff;border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.hero span{background:var(--sun);color:#1A1000;padding:2px 8px;border-radius:6px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="eyebrow">Remy AI · Design System · Phase 1 preview</div>
-<h1>Calm, professional, organized</h1>
-<p class="sub">Tokens + components for Today Dashboard, Chat, and Approvals. Principle: organize, assist, suggest, execute — user stays in control.</p>
+<div class="eyebrow">Remy AI · Design System · Bright / sharp contrast</div>
+<h1>Bright, bold, impossible to miss</h1>
+<p class="sub">High-contrast tokens + components. Black 2px borders, hard shadows, saturated colors. Principle unchanged: organize, assist, suggest, execute.</p>
+
+<div class="hero"><b>☀️ Good morning.</b> 3 priority · 2 meetings · <span>1 overdue follow-up</span> — what needs attention first?</div>
 
 <h2>1 · Color tokens</h2>
 <div class="grid g3">
-<div class="card"><div class="swatch" style="background:#0F766E"></div><p><b>Primary / Teal</b><br><code>#0F766E</code> · actions, Remy</p></div>
-<div class="card"><div class="swatch" style="background:#F8FAFC"></div><p><b>Background</b><br><code>#F8FAFC</code> · app base</p></div>
-<div class="card"><div class="swatch" style="background:#0F172A"></div><p><b>Ink</b><br><code>#0F172A</code> · text</p></div>
-<div class="card"><div class="swatch" style="background:#FEF3C7"></div><p><b>Needs attention</b><br><code>#FEF3C7 / #B45309</code></p></div>
-<div class="card"><div class="swatch" style="background:#FEE2E2"></div><p><b>Overdue</b><br><code>#FEE2E2 / #DC2626</code> · sparingly</p></div>
-<div class="card"><div class="swatch" style="background:#fff"></div><p><b>Surface</b><br><code>#FFFFFF</code> · cards, radius 10px</p></div>
+<div class="card"><div class="swatch" style="background:#6D28D9"></div><p><b>Primary / Electric violet</b><br><code>#6D28D9</code> · main actions, Remy</p></div>
+<div class="card"><div class="swatch" style="background:#EC4899"></div><p><b>Hot pink</b><br><code>#EC4899</code> · highlights, CTAs</p></div>
+<div class="card"><div class="swatch" style="background:#06B6D4"></div><p><b>Electric cyan</b><br><code>#06B6D4</code> · info, links</p></div>
+<div class="card"><div class="swatch" style="background:#A3E635"></div><p><b>Lime pop</b><br><code>#A3E635</code> · success, code</p></div>
+<div class="card"><div class="swatch" style="background:#FFC800"></div><p><b>Sunbeam yellow</b><br><code>#FFC800</code> · attention, Remy bubbles</p></div>
+<div class="card"><div class="swatch" style="background:#FF3B30"></div><p><b>Signal red</b><br><code>#FF3B30</code> · overdue only</p></div>
+<div class="card"><div class="swatch" style="background:#FFFFFF"></div><p><b>Background</b><br><code>#FFFFFF</code> · pure white base</p></div>
+<div class="card"><div class="swatch" style="background:#0A0A0F"></div><p><b>Ink</b><br><code>#0A0A0F</code> · text + all borders</p></div>
 </div>
 
 <h2>2 · Typography</h2>
 <div class="card type">
-<div style="font-size:32px"><b>32 · Page title</b> <span style="color:var(--muted)">— Good morning, here's today</span></div>
-<div style="font-size:20px"><b>20 · Section</b> <span style="color:var(--muted)">— Needs your attention</span></div>
+<div style="font-size:32px"><b>32 · Page title</b> — Good morning, here's today</div>
+<div style="font-size:20px"><b>20 · Section</b> — Needs your attention</div>
 <div style="font-size:16px"><b>16 · Body</b> — Remy speaks concisely and action-first.</div>
-<div style="font-size:14px;color:var(--muted)">14 · Secondary — 2 overdue, 1 blocks tomorrow's meeting.</div>
-<div style="font-size:12px;color:var(--muted)">12 · Eyebrow / meta — TODAY · 3 PRIORITY · 2 MEETINGS</div>
+<div style="font-size:14px">14 · Secondary — 2 overdue, 1 blocks tomorrow's meeting.</div>
+<div style="font-size:12px">12 · EYEBROW — TODAY · 3 PRIORITY · 2 MEETINGS</div>
 </div>
 
 <h2>3 · Components</h2>
 <div class="grid g2">
-<div class="card"><b>Buttons</b><div class="row" style="margin-top:10px"><button class="btn primary">Approve</button><button class="btn">Show options</button><button class="btn quiet">Dismiss</button><button class="btn danger">Deny</button></div></div>
-<div class="card"><b>Badges</b><div class="row" style="margin-top:10px"><span class="badge">Priority</span><span class="badge attn">Needs attention</span><span class="badge over">Overdue</span><span class="badge ok">Done</span></div></div>
-<div class="card"><b>Input</b><div style="margin-top:10px"><input class="input" value="Ask Remy… e.g. organize my tasks for tomorrow"></div><div class="row" style="margin-top:10px"><span class="chip">Create checklist</span><span class="chip">Draft follow-up</span><span class="chip">Find a time</span></div></div>
-<div class="card"><b>Approval card (Draft → Approve → Send)</b><div class="approval" style="margin-top:10px"><b>Draft follow-up to John</b><p style="color:var(--muted);font-size:14px">“Following up on the proposal sent 3 days ago…”</p><div class="row"><button class="btn primary">Approve &amp; send</button><button class="btn">Edit</button><button class="btn quiet">Deny</button></div></div></div>
+<div class="card"><b>Buttons</b><div class="row" style="margin-top:10px"><button class="btn primary">Approve</button><button class="btn pink">Send</button><button class="btn cyan">Show options</button><button class="btn lime">Done</button><button class="btn quiet">Dismiss</button><button class="btn danger">Deny</button></div></div>
+<div class="card"><b>Badges</b><div class="row" style="margin-top:10px"><span class="badge vip">Priority</span><span class="badge attn">Needs attention</span><span class="badge over">Overdue</span><span class="badge ok">Done</span><span class="badge info">Meeting</span></div></div>
+<div class="card"><b>Input</b><div style="margin-top:10px"><input class="input" value="Ask Remy… e.g. organize my tasks for tomorrow"></div><div class="row" style="margin-top:10px"><span class="chip">Create checklist</span><span class="chip alt">Draft follow-up</span><span class="chip alt2">Find a time</span></div></div>
+<div class="card"><b>Approval card (Draft → Approve → Send)</b><div class="approval" style="margin-top:10px"><b>Draft follow-up to John</b><p style="font-size:14px">“Following up on the proposal sent 3 days ago…”</p><div class="row"><button class="btn primary">Approve &amp; send</button><button class="btn">Edit</button><button class="btn quiet">Deny</button></div></div></div>
 </div>
 
 <h2>4 · Today dashboard (mock)</h2>
 <div class="topbar"><b>☀️ Good morning — here's what needs attention</b><span class="badge">My Work ▾ · Can draft, asks before sending</span></div>
 <div class="grid g2" style="margin-top:12px">
 <div class="card"><b>Priority tasks <span class="badge over">2 overdue</span></b>
-<div class="task"><div class="dot" style="background:var(--red)"></div><div><b>Send proposal follow-up — John</b><div style="color:var(--muted);font-size:13px">Due 3d ago · blocks decision</div></div></div>
-<div class="task"><div class="dot" style="background:var(--amber)"></div><div><b>Prep 2 PM client meeting</b><div style="color:var(--muted);font-size:13px">No checklist yet · <u>Create one?</u></div></div></div>
-<div class="task"><div class="dot" style="background:var(--primary)"></div><div><b>Weekly report draft</b><div style="color:var(--muted);font-size:13px">Due Friday · from last month's doc</div></div></div>
+<div class="task"><div class="dot" style="background:var(--red)"></div><div><b>Send proposal follow-up — John</b><div style="font-size:13px">Due 3d ago · blocks decision</div></div></div>
+<div class="task"><div class="dot" style="background:var(--sun)"></div><div><b>Prep 2 PM client meeting</b><div style="font-size:13px">No checklist yet · <u>Create one?</u></div></div></div>
+<div class="task"><div class="dot" style="background:var(--primary)"></div><div><b>Weekly report draft</b><div style="font-size:13px">Due Friday · from last month's doc</div></div></div>
 </div>
 <div class="card"><b>Meetings · Emails · Follow-ups</b>
-<p><span class="badge">2 meetings</span> <span class="badge attn">4 important emails</span> <span class="badge over">1 overdue follow-up</span></p>
+<p><span class="badge vip">2 meetings</span> <span class="badge info">4 important emails</span> <span class="badge over">1 overdue follow-up</span></p>
 <p style="font-size:14px">Remy: “Your 2 PM needs prep. Want a checklist?”</p>
 <div class="row"><button class="btn primary">Create checklist</button><button class="btn">Later</button></div>
 </div>
@@ -86,9 +97,9 @@ code{background:#F1F5F9;padding:2px 6px;border-radius:6px;font-size:13px}
 <div class="chat"><div style="padding:14px">
 <div class="bubble me">Remy, organize my tasks for tomorrow.</div>
 <div class="bubble remy">You have 8 tasks. 2 overdue, 1 blocks tomorrow's meeting. Reorganize priority?</div>
-<div class="row"><span class="chip">Yes, reorganize</span><span class="chip">Show list</span></div>
+<div class="row"><span class="chip">Yes, reorganize</span><span class="chip alt">Show list</span></div>
 </div></div>
-<p class="sub" style="margin-top:12px">Full spec in <code>Docs/Implementation Plan.md</code> Phase 1. Next: Figma → <code>packages/ui</code> (Tailwind + shadcn).</p>
+<p class="sub" style="margin-top:12px">Tokens locked: <code>#6D28D9</code> <code>#EC4899</code> <code>#06B6D4</code> <code>#A3E635</code> <code>#FFC800</code> <code>#FF3B30</code> on <code>#FFFFFF / #0A0A0F</code>. Next: Figma → <code>packages/ui</code> (Tailwind + shadcn).</p>
 </div>
 </body>
 </html>
