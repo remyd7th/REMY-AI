@@ -31,7 +31,7 @@ Exit: MVP story list signed off.
 Goal: Remy feels professional, calm, organized, proactive — not robotic/bossy (PRD §19).
 
 **1.1 Brand tokens (bright, sharp contrast — locked)**
-- Colors: pure white base `#FFFFFF`, near-black ink `#0A0A0F` used for text AND all borders (2px). Primary electric violet `#6D28D9`, hot pink `#EC4899`, electric cyan `#06B6D4`, lime `#A3E635`, sunbeam yellow `#FFC800` (attention/Remy bubbles), signal red `#FF3B30` (overdue only). Hard shadow `4px 4px 0 #0A0A0F` on cards/buttons. No muted pastels.
+- Colors: pure white base `#FFFFFF`, near-black ink `#0A0A0F` used for text AND all borders (2px). Primary electric violet `#6D28D9`, hot pink `#EC4899`, electric cyan `#06B6D4`, lime `#A3E635`, sunbeam yellow `#FFC800` (attention/Remy bubbles), signal red `#FF3B30` (overdue only). Hard shadow `4px 4px 0 #0A0A0F` on cards/buttons. No muted pastels. No gradients — flat solid colors only.
 - Type: Inter / system stack. Scale: 12/14/16/20/24/32. Mono for timestamps.
 - Spacing/radius: 4pt grid, 8-12px radius cards, 1px borders.
 - Voice: concise, clear, action-first. E.g. "2 overdue, 1 blocks tomorrow's meeting. Reorganize?" not paragraphs.
