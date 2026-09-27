@@ -58,20 +58,24 @@ Exit: Figma prototype covering Morning/Day/End-of-day flows + token sheet.
 
 ## Phase 2 — Architecture Decisions
 
-Recommended MVP stack (decide now, change later is expensive):
+Locked MVP stack (per user decisions — local-first, no Supabase, no Vercel):
 
-- **Frontend:** Next.js 14 (App Router) + TypeScript + Tailwind + shadcn/ui. PWA for mobile reminders.
-- **Backend:** Single API: NestJS (Node) OR FastAPI (Python) — pick one. Recommendation: NestJS if team is JS-heavy, FastAPI if AI-heavy. Expose REST + WebSocket/SSE for chat streaming.
-- **DB:** Postgres (Neon/Supabase) + Prisma/Drizzle. Redis (BullMQ) for reminders, follow-up checks, email sync jobs.
-- **Files:** S3-compatible (Supabase Storage / R2) for docs.
-- **Auth:** Clerk or Auth.js + OAuth (Google/Microsoft) from day 1 — needed for calendar/email integrations.
-- **AI layer:** LLM provider-agnostic gateway (OpenAI-compatible interface). Function-calling/tools for: createTask, scheduleMeeting, draftEmail, summarizeDoc, suggestFollowUp. Vector store (pgvector) for memory + doc retrieval. No training/fine-tune in MVP.
+- **Frontend:** Next.js 14 (App Router) + TypeScript + Tailwind + shadcn/ui. PWA for mobile reminders. Runs locally via `pnpm dev` / Docker.
+- **Backend:** Single API: NestJS (Node) OR FastAPI (Python) — still to pick. Recommendation: NestJS if team is JS-heavy, FastAPI if AI-heavy. Expose REST + SSE for chat streaming. Runs locally in Docker alongside web.
+- **DB (local Postgres — pick one):**
+  - Recommended: Docker `pgvector/pgvector:pg16` image — gives you Postgres 16 + pgvector (needed for memory/doc retrieval) in one container, no install hassle, easy backup via volume.
+  - Alternative without Docker: direct install from postgresql.org + `CREATE EXTENSION vector;` + pgAdmin for GUI.
+  - ORM: Prisma/Drizzle. Redis (Docker `redis:7`, BullMQ) for reminders, follow-up checks, email sync jobs.
+- **Files:** Cloudflare R2 (S3-compatible) for docs. Use AWS SDK v3 with R2 endpoint + API tokens. Local dev still hits R2 (no local emulator needed); presigned URLs for upload/download.
+- **Auth:** Better Auth (self-hosted, Postgres-backed) + OAuth (Google/Microsoft) from day 1 — needed for calendar/email integrations. No Clerk/Auth.js, no Supabase Auth.
+- **AI layer:** LLM provider-agnostic gateway (OpenAI-compatible interface). Function-calling/tools for: createTask, scheduleMeeting, draftEmail, summarizeDoc, suggestFollowUp. Vector store = pgvector in local Postgres for memory + doc retrieval. No training/fine-tune in MVP.
 - **Voice:** Web Speech API first, Whisper + TTS later.
+- **Hosting (for now): local device only.** Docker Compose: `web + api + postgres + redis`. No Vercel, no Supabase, no cloud DB. Cloud deploy deferred to post-MVP.
 - **Monorepo:** `apps/web`, `apps/api`, `packages/ui`, `packages/types`, `packages/prompts`
 
-Key decisions to lock:
+Key decisions still to lock:
 1. Backend language (NestJS vs FastAPI)
-2. Hosting (Vercel + Render/Fly vs full Supabase)
+2. Local run shape (plain `pnpm dev` vs Docker Compose — recommend Compose so Postgres+Redis start together)
 3. LLM provider + cost guardrails
 4. Google/Microsoft OAuth scopes (least privilege)
 5. Multi-tenancy: `workspaceId` on every row (user / executive / client / team)
@@ -114,7 +118,7 @@ Exit: Prisma schema + OpenAPI for above.
 
 Order matters. Build in this order:
 
-1. Auth + Workspaces (switch without losing context, PRD §14)
+1. Auth + Workspaces with Better Auth (Postgres-backed, local DB) — switch without losing context, PRD §14
 2. Permission Gate middleware: `always → execute + log`, `ask → create approval + notify`, `never → block`. UI ApprovalCard. No feature ships without this.
 3. Memory/Preferences CRUD + per-workspace override (PRD §15)
 4. `GET /today` aggregator + Daily/Weekly progress calculators (PRD §13)
@@ -156,7 +160,7 @@ Exit: 4 triggers live with Approve/Dismiss telemetry.
 
 - Calendar: Google Calendar + Microsoft Graph (read free/busy, create/update/delete, webhooks)
 - Email: Gmail + Outlook (read, send via approval, thread tracking). Store minimal body, encrypt tokens.
-- Storage: Drive/Dropbox import (phase 2), local upload first.
+- Storage: Cloudflare R2 as primary doc store (S3-compatible SDK, presigned URLs). Drive/Dropbox import deferred to post-MVP.
 - Notifications: email + push + in-app. Timezone-aware.
 - Voice: STT button in chat → text intent (full duplex later).
 
@@ -167,7 +171,7 @@ Security: OAuth least-privilege, token rotation, per-workspace disconnect.
 ## Phase 8 — Quality, Security, Privacy (continuous + Week 14 hardening)
 
 - Tests: Vitest/Jest unit (permission gate, schedulers), Playwright e2e for Morning→EOD journey, LLM eval set (20 golden prompts, tone + tool-correctness).
-- Security: RLS or workspace scoping tests, rate limits, prompt-injection guard (never execute tool from email/doc body without approval), PII redaction in logs.
+- Security: app-level workspace scoping tests (every query filtered by workspaceId+userId), rate limits, prompt-injection guard (never execute tool from email/doc body without approval), PII redaction in logs.
 - Privacy: memory view/edit/delete, data export/delete per workspace, retention policy.
 - Perf budgets: Today <800ms p95 (cached), chat first token <2s.
 
@@ -175,8 +179,8 @@ Security: OAuth least-privilege, token rotation, per-workspace disconnect.
 
 ## Phase 9 — DevOps & Release (Week 15)
 
-- Env: preview per PR, staging, prod. Migrations via Prisma. Secrets in vault.
-- CI: lint + typecheck + tests + e2e smoke. CD: Vercel (web) + Fly/Render (api + workers).
+- Env (local-only for now): Docker Compose (`web + api + postgres + redis`). Migrations via Prisma. Secrets in local `.env` (never commit). No Vercel, no Supabase, no cloud DB.
+- CI: lint + typecheck + tests + e2e smoke (run locally via `pnpm` / Docker; cloud CI deferred).
 - Observability: Sentry + Posthog (approval accept rate, suggestion usefulness, follow-up recovery rate), LLM cost dashboard, audit log viewer.
 - Beta: 5-10 EAs/VAs, onboard with 1 executive + 1 client workspace each. Measure PRD §22 outcomes weekly.
 
@@ -190,9 +194,9 @@ Only after approval-rate >70% and retention: payments/expenses, team roles, CRM-
 
 ## Immediate next steps (pick one)
 
-1. Lock stack (NestJS vs FastAPI, hosting, LLM provider)
+1. Lock remaining stack (NestJS vs FastAPI, LLM provider)
 2. Approve Figma scope for Today + Chat + ApprovalCard
-3. Create `apps/web + apps/api` scaffold + Postgres + Clerk + CI
+3. Create `apps/web + apps/api` scaffold + local Postgres (Docker pgvector) + Better Auth + R2 wiring
 
 Suggested repo layout after scaffold:
 ```
