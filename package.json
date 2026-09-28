@@ -1,0 +1,10 @@
+{
+  "name": "remy-ai",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:api": "npm run dev --workspace apps/api",
+    "build:api": "npm run build --workspace apps/api"
+  }
+}
