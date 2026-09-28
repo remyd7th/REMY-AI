@@ -5,6 +5,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { ApprovalsModule } from './approvals/approvals.module';
 import { TasksModule } from './tasks/tasks.module';
+import { EventsModule } from './events/events.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { TodayModule } from './today/today.module';
     PermissionsModule,
     ApprovalsModule,
     TasksModule,
+    EventsModule,
     TodayModule,
   ],
 })
