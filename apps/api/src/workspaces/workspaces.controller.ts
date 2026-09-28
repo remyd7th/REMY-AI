@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Controller('workspaces')
@@ -6,9 +6,9 @@ export class WorkspacesController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  list(@Body() body: { userId: string }) {
+  list(@Query('userId') userId: string) {
     return this.prisma.workspace.findMany({
-      where: { userId: body?.userId ?? '' },
+      where: { userId: userId ?? '' },
       orderBy: { createdAt: 'asc' },
     });
   }
