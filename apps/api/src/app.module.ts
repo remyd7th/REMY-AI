@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { ApprovalsModule } from './approvals/approvals.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -11,6 +12,7 @@ import { TodayModule } from './today/today.module';
     PrismaModule,
     WorkspacesModule,
     PermissionsModule,
+    ApprovalsModule,
     TodayModule,
   ],
 })
