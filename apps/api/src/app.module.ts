@@ -7,6 +7,7 @@ import { ApprovalsModule } from './approvals/approvals.module';
 import { TasksModule } from './tasks/tasks.module';
 import { EventsModule } from './events/events.module';
 import { EmailsModule } from './emails/emails.module';
+import { DocumentsModule } from './documents/documents.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { TodayModule } from './today/today.module';
     TasksModule,
     EventsModule,
     EmailsModule,
+    DocumentsModule,
     TodayModule,
   ],
 })
