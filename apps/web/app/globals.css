@@ -1,0 +1,43 @@
+@import '../../../packages/ui/tokens.css';
+
+:root {
+  --bg: #ffffff;
+  --ink: #0a0a0f;
+  --muted: #3f3f46;
+  --line: #0a0a0f;
+  --primary: #6d28d9;
+  --pink: #ec4899;
+  --cyan: #06b6d4;
+  --lime: #a3e635;
+  --sun: #ffc800;
+  --red: #ff3b30;
+  --radius: 10px;
+  --shadow: 4px 4px 0 #0a0a0f;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
+.nav { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 24px; }
+.nav a { border: 2px solid var(--line); border-radius: 8px; padding: 8px 12px; font-weight: 800; text-decoration: none; background: #fff; box-shadow: 3px 3px 0 var(--line); }
+.nav a.active { background: var(--primary); color: #fff; }
+.card { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.badge { display: inline-block; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--line); margin-right: 6px; }
+.b-over { background: var(--red); color: #fff; }
+.b-attn { background: var(--sun); }
+.b-ok { background: var(--lime); }
+.b-info { background: var(--cyan); }
+.b-vip { background: var(--primary); color: #fff; }
+.btn { border: 2px solid var(--line); background: #fff; border-radius: 8px; padding: 8px 14px; font-weight: 800; cursor: pointer; box-shadow: 3px 3px 0 var(--line); margin-right: 8px; }
+.btn.primary { background: var(--primary); color: #fff; }
+.btn.danger { background: var(--red); color: #fff; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+input, select, textarea { border: 2px solid var(--line); border-radius: 8px; padding: 9px 11px; font-size: 14px; font-family: inherit; }
+.chip { border: 2px solid var(--line); background: var(--sun); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.bubble { max-width: 80%; padding: 10px 13px; border-radius: 12px; border: 2px solid var(--line); margin: 8px 0; white-space: pre-wrap; }
+.me { background: var(--primary); color: #fff; margin-left: auto; }
+.remy { background: var(--sun); }
+.muted { color: var(--muted); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--primary); color: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
