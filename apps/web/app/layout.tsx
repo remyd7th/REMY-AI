@@ -20,8 +20,8 @@ export default function Root({ children }: { children: ReactNode }) {
       <body>
         <div className="wrap">
           <div className="topbar">
-            <b>Remy AI</b>
-            <span className="muted" style={{ color: '#fff' }}>Can draft, asks before sending</span>
+            <span className="brand"><span className="brand-mark">☀</span> Remy AI</span>
+            <span className="tag">Can draft · asks before sending</span>
           </div>
           <WorkspaceBar />
           <nav className="nav">
@@ -30,6 +30,7 @@ export default function Root({ children }: { children: ReactNode }) {
             ))}
           </nav>
           {children}
+          <div className="footer">Remy AI · organize, assist, suggest, execute — you stay in control.</div>
         </div>
       </body>
     </html>

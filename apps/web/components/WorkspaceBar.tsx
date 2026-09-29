@@ -26,8 +26,8 @@ export default function WorkspaceBar() {
   }, []);
 
   return (
-    <div className="row" style={{ marginBottom: 12 }}>
-      <b>Workspace:</b>
+    <div className="wsbar">
+      <b>Workspace</b>
       <select
         value={cur}
         onChange={(e) => { window.location.href = withWorkspace(window.location.pathname, e.target.value); }}
