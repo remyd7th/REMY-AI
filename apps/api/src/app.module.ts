@@ -9,6 +9,7 @@ import { EventsModule } from './events/events.module';
 import { EmailsModule } from './emails/emails.module';
 import { DocumentsModule } from './documents/documents.module';
 import { ChatModule } from './chat/chat.module';
+import { FollowupsModule } from './followups/followups.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { TodayModule } from './today/today.module';
     EmailsModule,
     DocumentsModule,
     ChatModule,
+    FollowupsModule,
     TodayModule,
   ],
 })
