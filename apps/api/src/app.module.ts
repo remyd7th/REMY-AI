@@ -10,6 +10,7 @@ import { EmailsModule } from './emails/emails.module';
 import { DocumentsModule } from './documents/documents.module';
 import { ChatModule } from './chat/chat.module';
 import { FollowupsModule } from './followups/followups.module';
+import { MemoriesModule } from './memories/memories.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { TodayModule } from './today/today.module';
     DocumentsModule,
     ChatModule,
     FollowupsModule,
+    MemoriesModule,
     TodayModule,
   ],
 })
