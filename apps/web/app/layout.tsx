@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import './globals.css';
 import WorkspaceBar from '../components/WorkspaceBar';
+import GoogleButton from '../components/GoogleButton';
 
 export const metadata = { title: 'Remy AI', description: 'Your intelligent AI work assistant' };
 
@@ -21,7 +22,7 @@ export default function Root({ children }: { children: ReactNode }) {
         <div className="wrap">
           <div className="topbar">
             <span className="brand"><span className="brand-mark">☀</span> Remy AI</span>
-            <span className="tag">Can draft · asks before sending</span>
+            <span className="row"><GoogleButton /><span className="tag">Can draft · asks before sending</span></span>
           </div>
           <WorkspaceBar />
           <nav className="nav">

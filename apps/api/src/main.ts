@@ -1,5 +1,12 @@
 import { NestFactory } from '@nestjs/core';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { AppModule } from './app.module';
+
+// Root .env must load before any module reads process.env at import time
+// (e.g. auth.ts provider setup). ConfigModule re-loads it harmlessly later.
+const rootEnv = path.join(process.cwd(), '..', '..', '.env');
+if (fs.existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
