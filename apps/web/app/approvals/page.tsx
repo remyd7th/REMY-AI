@@ -1,14 +1,20 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, qs } from '../../lib/api';
+import { API, DEMO_USER, qs } from '../../lib/api';
+import { currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Approval { id: string; action: string; status: string; payload: { body?: string; to?: string } }
 
 export default function ApprovalsPage() {
   const [items, setItems] = useState<Approval[]>([]);
+  const [ws, setWs] = useState('');
+
+  const W = () => ws || currentWorkspace();
 
   async function load() {
-    const res = await fetch(`${API}/approvals?${qs()}`);
+    const w = W();
+    if (!ws) setWs(w);
+    const res = await fetch(`${API}/approvals?${qs(w)}`);
     setItems(await res.json());
   }
   useEffect(() => { load(); }, []);

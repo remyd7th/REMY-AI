@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { API, DEMO_USER, DEMO_WORKSPACE } from '../../lib/api';
+import { API, DEMO_USER } from '../../lib/api';
+import { currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Action { label: string; method: string; endpoint: string; body?: unknown }
 interface Msg { from: 'me' | 'remy'; text: string; actions?: Action[]; via?: string }
@@ -20,7 +21,7 @@ export default function ChatPage() {
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: DEMO_USER, workspaceId: DEMO_WORKSPACE, message: text }),
+        body: JSON.stringify({ userId: DEMO_USER, workspaceId: currentWorkspace(), message: text }),
       });
       const json = await res.json();
       setMsgs((m) => [...m, { from: 'remy', text: json.reply, actions: json.suggestedActions ?? [], via: json.via }]);

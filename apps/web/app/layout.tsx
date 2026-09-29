@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
+import WorkspaceBar from '../components/WorkspaceBar';
 
 export const metadata = { title: 'Remy AI', description: 'Your intelligent AI work assistant' };
 
@@ -7,7 +8,10 @@ const LINKS = [
   ['Today', '/'],
   ['Chat', '/chat'],
   ['Tasks', '/tasks'],
+  ['Calendar', '/calendar'],
+  ['Follow-ups', '/followups'],
   ['Approvals', '/approvals'],
+  ['Permissions', '/permissions'],
 ];
 
 export default function Root({ children }: { children: ReactNode }) {
@@ -17,8 +21,9 @@ export default function Root({ children }: { children: ReactNode }) {
         <div className="wrap">
           <div className="topbar">
             <b>Remy AI</b>
-            <span className="muted" style={{ color: '#fff' }}>My Work · Can draft, asks before sending</span>
+            <span className="muted" style={{ color: '#fff' }}>Can draft, asks before sending</span>
           </div>
+          <WorkspaceBar />
           <nav className="nav">
             {LINKS.map(([label, href]) => (
               <a key={href} href={href}>{label}</a>

@@ -1,4 +1,4 @@
-import { api, qs } from '../lib/api';
+import { api, qs, DEMO_WORKSPACE } from '../lib/api';
 
 interface Today {
   tasks: { id: string; title: string; priority: string; dueAt: string | null }[];
@@ -10,8 +10,9 @@ interface Today {
   progress: { done: number; remaining: number };
 }
 
-export default async function TodayPage() {
-  const q = qs();
+export default async function TodayPage({ searchParams }: { searchParams: { workspaceId?: string } }) {
+  const ws = searchParams.workspaceId ?? DEMO_WORKSPACE;
+  const q = qs(ws);
   const [today, digest] = await Promise.all([
     api<Today>(`/today?${q}`),
     api<{ headline: string; suggestions: { notice: string; label: string }[] }>(`/digests/morning?${q}`),

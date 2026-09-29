@@ -1,15 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER, DEMO_WORKSPACE, qs } from '../../lib/api';
+import { API, DEMO_USER, qs } from '../../lib/api';
+import { currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Task { id: string; title: string; status: string; priority: string; dueAt: string | null }
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('');
+  const [ws, setWs] = useState('');
+
+  const W = () => ws || currentWorkspace();
 
   async function load() {
-    const res = await fetch(`${API}/tasks?${qs()}`);
+    const w = W();
+    if (!ws) setWs(w);
+    const res = await fetch(`${API}/tasks?${qs(w)}`);
     setTasks(await res.json());
   }
   useEffect(() => { load(); }, []);
@@ -17,7 +23,7 @@ export default function TasksPage() {
   async function create() {
     if (!title.trim()) return;
     await fetch(`${API}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: DEMO_USER, workspaceId: DEMO_WORKSPACE, title }) });
+      body: JSON.stringify({ userId: DEMO_USER, workspaceId: W(), title }) });
     setTitle('');
     load();
   }
