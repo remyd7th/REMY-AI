@@ -11,6 +11,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { ChatModule } from './chat/chat.module';
 import { FollowupsModule } from './followups/followups.module';
 import { MemoriesModule } from './memories/memories.module';
+import { DigestsModule } from './digests/digests.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { TodayModule } from './today/today.module';
     ChatModule,
     FollowupsModule,
     MemoriesModule,
+    DigestsModule,
     TodayModule,
   ],
 })
