@@ -11,6 +11,7 @@ export default function GoogleButton() {
       const res = await fetch(`${API}/auth/sign-in/social`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ provider: 'google', callbackURL: `${window.location.origin}/` }),
       });
       const json = await res.json();

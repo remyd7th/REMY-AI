@@ -11,7 +11,10 @@ if (fs.existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: process.env.WEB_URL ?? 'http://localhost:3000' });
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    credentials: true,
+  });
   const port = Number(process.env.API_PORT ?? 4000);
   await app.listen(port);
   // eslint-disable-next-line no-console
