@@ -13,6 +13,7 @@ const LINKS = [
   ['Follow-ups', '/followups'],
   ['Approvals', '/approvals'],
   ['Permissions', '/permissions'],
+  ['Get started', '/get-started'],
   ['Sign in', '/signin'],
 ];
 

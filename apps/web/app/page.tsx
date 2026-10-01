@@ -1,5 +1,3 @@
-import GoogleButton from '../components/GoogleButton';
-
 const FEATURES = [
   ['☀️', 'Morning briefing', 'Priority tasks, meetings, emails and follow-ups — what needs attention, first thing.'],
   ['💬', 'AI chat + voice-ready', 'Tell Remy in plain words. It organizes, drafts and prepares — you approve.'],
@@ -20,9 +18,9 @@ export default function Landing() {
           <span className="hl"> while you stay in control.</span>
         </p>
         <div className="row" style={{ marginTop: 14 }}>
-          <GoogleButton />
-          <a href="/today"><button className="btn">See today&apos;s demo</button></a>
+          <a href="/get-started"><button className="btn sun">Get started →</button></a>
           <a href="/signin"><button className="btn">Sign in</button></a>
+          <a href="/today"><button className="btn">See today&apos;s demo</button></a>
         </div>
       </div>
       <div className="grid2">
