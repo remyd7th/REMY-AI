@@ -126,7 +126,13 @@ export class EmailsController {
         userId: body.userId,
         workspaceId: body.workspaceId,
         action: 'sendEmail',
-        payload: { to: body.to, purpose, tone: body.tone ?? 'professional', body: composed },
+        payload: {
+          to: body.to,
+          subject: `Follow-up${body.context ? `: ${body.context}` : ''}`,
+          purpose,
+          tone: body.tone ?? 'professional',
+          body: composed,
+        },
       },
     });
   }

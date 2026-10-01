@@ -9,11 +9,17 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { PermissionGate } from '../permissions/permission.gate';
+import { GoogleService } from '../google/google.service';
 
 // Approval lifecycle: create (pending) → approve|deny → execute (guarded) + audit.
+// sendEmail approvals actually deliver via Gmail when Google is connected;
+// otherwise execution is recorded without external side-effects.
 @Controller('approvals')
 export class ApprovalsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly google: GoogleService,
+  ) {}
 
   @Post()
   create(
@@ -55,6 +61,12 @@ export class ApprovalsController {
     @Body()
     body: { userId: string; workspaceId: string; action: string; approvalId: string },
   ) {
+    const pending = await this.prisma.approval.findUniqueOrThrow({ where: { id: body.approvalId } });
+    const payload = pending.payload as { to?: string; subject?: string; body?: string };
+    let delivered: unknown = { mode: 'recorded' };
+    if (body.action === 'sendEmail' && payload.to && payload.body && (await this.google.connected(body.userId))) {
+      delivered = await this.google.sendGmail(body.userId, payload.to, payload.subject ?? '(no subject)', payload.body);
+    }
     const approval = await this.prisma.approval.update({
       where: { id: body.approvalId },
       data: { status: 'executed' },
@@ -65,9 +77,9 @@ export class ApprovalsController {
         actor: 'remy',
         action: body.action,
         target: `approval:${body.approvalId}`,
-        result: 'executed',
+        result: `executed:${JSON.stringify(delivered).slice(0, 200)}`,
       },
     });
-    return approval;
+    return { ...approval, delivered };
   }
 }

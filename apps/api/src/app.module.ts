@@ -12,6 +12,7 @@ import { FollowupsModule } from './followups/followups.module';
 import { MemoriesModule } from './memories/memories.module';
 import { DigestsModule } from './digests/digests.module';
 import { AuthModule } from './auth/auth.module';
+import { GoogleModule } from './google/google.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { TodayModule } from './today/today.module';
     MemoriesModule,
     DigestsModule,
     AuthModule,
+    GoogleModule,
     TodayModule,
   ],
 })
