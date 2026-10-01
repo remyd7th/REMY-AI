@@ -6,13 +6,14 @@ import GoogleButton from '../components/GoogleButton';
 export const metadata = { title: 'Remy AI', description: 'Your intelligent AI work assistant' };
 
 const LINKS = [
-  ['Today', '/'],
+  ['Today', '/today'],
   ['Chat', '/chat'],
   ['Tasks', '/tasks'],
   ['Calendar', '/calendar'],
   ['Follow-ups', '/followups'],
   ['Approvals', '/approvals'],
   ['Permissions', '/permissions'],
+  ['Sign in', '/signin'],
 ];
 
 export default function Root({ children }: { children: ReactNode }) {
