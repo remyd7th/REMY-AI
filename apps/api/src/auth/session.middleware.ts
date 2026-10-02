@@ -7,7 +7,8 @@ import { auth } from './auth';
 @Injectable()
 export class SessionMiddleware implements NestMiddleware {
   async use(req: any, _res: any, next: () => void) {
-    if (req.path?.startsWith('/api/auth')) return next();
+    const url: string = req.originalUrl ?? req.url ?? req.path ?? '';
+    if (url.startsWith('/api/auth')) return next();
     const session = await auth.api
       .getSession({ headers: req.headers })
       .catch(() => null);
