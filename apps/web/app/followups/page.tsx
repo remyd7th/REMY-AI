@@ -1,27 +1,30 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER } from '../../lib/api';
-import { currentWorkspace } from '../../components/WorkspaceBar';
+import { API } from '../../lib/api';
+import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Fu { id: string; kind: string; refId: string; status: string; dueAt: string | null }
 
 export default function FollowupsPage() {
   const [items, setItems] = useState<Fu[]>([]);
-  const ws = currentWorkspace();
 
-  async function load(w = ws) {
-    const res = await fetch(`${API}/followups/due?workspaceId=${w}&userId=${DEMO_USER}`);
+  const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
+  const auth = { credentials: 'include' as const, headers: { 'Content-Type': 'application/json' } };
+
+  async function load() {
+    const res = await fetch(`${API}/followups/due?${Q()}`, { credentials: 'include' });
     setItems(await res.json());
   }
   useEffect(() => { load(); }, []);
 
   async function scan() {
-    await fetch(`${API}/followups/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: DEMO_USER, workspaceId: ws }) });
+    const q = new URLSearchParams(Q());
+    await fetch(`${API}/followups/scan`, { ...auth, method: 'POST',
+      body: JSON.stringify({ userId: q.get('userId'), workspaceId: q.get('workspaceId') }) });
     load();
   }
   async function act(id: string, how: 'nudge' | 'resolve') {
-    await fetch(`${API}/followups/${id}/${how}`, { method: 'POST' });
+    await fetch(`${API}/followups/${id}/${how}`, { ...auth, method: 'POST' });
     load();
   }
 

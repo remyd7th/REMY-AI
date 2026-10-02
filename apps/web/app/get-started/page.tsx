@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API } from '../../lib/api';
+import { API, storeUid } from '../../lib/api';
 import GoogleButton from '../../components/GoogleButton';
 
 interface Session { user?: { id: string; name?: string; email?: string } }
@@ -21,7 +21,10 @@ export default function GetStartedPage() {
       const res = await fetch(`${API}/auth/get-session`, { credentials: 'include' });
       const s = await res.json();
       setSession(s);
-      if (s?.user) setStep((st) => Math.max(st, 1));
+      if (s?.user?.id) {
+        storeUid(s.user.id);
+        setStep((st) => Math.max(st, 1));
+      }
     } catch {
       setSession(null);
     }
@@ -31,13 +34,13 @@ export default function GetStartedPage() {
   async function finish() {
     const uid = session?.user?.id;
     if (!uid) return;
-    await fetch(`${API}/memories`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    await fetch(`${API}/memories`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: uid, key: 'meeting_time', value: meetingTime }) });
-    await fetch(`${API}/memories`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    await fetch(`${API}/memories`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: uid, key: 'email_tone', value: emailTone }) });
     let target = '/today';
     if (wsName.trim()) {
-      const w = await fetch(`${API}/workspaces`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const w = await fetch(`${API}/workspaces`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid, name: wsName, type: wsType }) }).then((r) => r.json());
       target = `/today?workspaceId=${w.id}`;
     }

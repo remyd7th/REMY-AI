@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { API, DEMO_USER } from '../../../lib/api';
-import { currentWorkspace } from '../../../components/WorkspaceBar';
+import { API, uid } from '../../../lib/api';
+import { currentUserId, currentWorkspace } from '../../../components/WorkspaceBar';
 
 export default function NewWorkspacePage() {
   const [name, setName] = useState('');
@@ -10,11 +10,11 @@ export default function NewWorkspacePage() {
 
   async function create() {
     if (!name.trim()) return;
-    const res = await fetch(`${API}/workspaces`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: DEMO_USER, name, type }) });
+    const res = await fetch(`${API}/workspaces`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: uid(), name, type }) });
     const ws = await res.json();
     setMsg(`Created ${ws.name}`);
-    window.location.href = `/?workspaceId=${ws.id}`;
+    window.location.href = `/today?workspaceId=${ws.id}&userId=${currentUserId()}`;
   }
 
   return (

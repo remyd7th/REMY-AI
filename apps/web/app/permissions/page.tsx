@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER } from '../../lib/api';
+import { API, uid } from '../../lib/api';
 import { currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Rule { action: string; level: string; scope: string }
@@ -12,14 +12,14 @@ export default function PermissionsPage() {
   const ws = currentWorkspace();
 
   async function load() {
-    const res = await fetch(`${API}/permissions?userId=${DEMO_USER}`);
+    const res = await fetch(`${API}/permissions?userId=${uid()}`, { credentials: 'include' });
     setRules(await res.json());
   }
   useEffect(() => { load(); }, []);
 
   async function set(action: string, level: string) {
-    await fetch(`${API}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: DEMO_USER, scope: 'global', action, level }) });
+    await fetch(`${API}/permissions`, { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: uid(), scope: 'global', action, level }) });
     load();
   }
 

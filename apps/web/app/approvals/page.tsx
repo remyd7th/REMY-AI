@@ -1,26 +1,22 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER, qs } from '../../lib/api';
-import { currentWorkspace } from '../../components/WorkspaceBar';
+import { qs, apif } from '../../lib/api';
+import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Approval { id: string; action: string; status: string; payload: { body?: string; to?: string } }
 
 export default function ApprovalsPage() {
   const [items, setItems] = useState<Approval[]>([]);
-  const [ws, setWs] = useState('');
 
-  const W = () => ws || currentWorkspace();
+  const Q = () => qs(currentWorkspace(), currentUserId());
 
   async function load() {
-    const w = W();
-    if (!ws) setWs(w);
-    const res = await fetch(`${API}/approvals?${qs(w)}`);
-    setItems(await res.json());
+    setItems(await apif<Approval[]>(`/approvals?${Q()}`));
   }
   useEffect(() => { load(); }, []);
 
   async function decide(id: string, how: 'approve' | 'deny') {
-    await fetch(`${API}/approvals/${id}/${how}`, { method: 'POST' });
+    await apif(`/approvals/${id}/${how}`, { method: 'POST' });
     load();
   }
 

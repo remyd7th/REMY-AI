@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER, DEMO_WORKSPACE } from '../lib/api';
+import { DEMO_WORKSPACE, apif, uid } from '../lib/api';
 
 interface Ws { id: string; name: string; type: string }
 
@@ -9,10 +9,16 @@ export function currentWorkspace(): string {
   return new URLSearchParams(window.location.search).get('workspaceId') ?? DEMO_WORKSPACE;
 }
 
+export function currentUserId(): string {
+  if (typeof window === 'undefined') return uid();
+  return new URLSearchParams(window.location.search).get('userId') ?? uid();
+}
+
 export function withWorkspace(path: string, ws: string): string {
   const [base, query] = path.split('?');
   const params = new URLSearchParams(query ?? '');
   params.set('workspaceId', ws);
+  if (!params.get('userId')) params.set('userId', currentUserId());
   return `${base}?${params.toString()}`;
 }
 
@@ -22,7 +28,7 @@ export default function WorkspaceBar() {
 
   useEffect(() => {
     setCur(currentWorkspace());
-    fetch(`${API}/workspaces?userId=${DEMO_USER}`).then((r) => r.json()).then(setList).catch(() => {});
+    apif<Ws[]>(`/workspaces?workspaceId=${currentWorkspace()}&userId=${currentUserId()}`).then(setList).catch(() => {});
   }, []);
 
   return (
@@ -30,7 +36,7 @@ export default function WorkspaceBar() {
       <b>Workspace</b>
       <select
         value={cur}
-        onChange={(e) => { window.location.href = withWorkspace(window.location.pathname, e.target.value); }}
+        onChange={(e) => { window.location.href = withWorkspace(window.location.pathname + window.location.search, e.target.value); }}
       >
         {list.map((w) => <option key={w.id} value={w.id}>{w.name} ({w.type})</option>)}
         {list.length === 0 && <option value={cur}>My Work</option>}

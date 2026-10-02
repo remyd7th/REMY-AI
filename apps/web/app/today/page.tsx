@@ -1,4 +1,7 @@
-import { api, qs, DEMO_WORKSPACE } from '../../lib/api';
+'use client';
+import { useEffect, useState } from 'react';
+import { apif, qs } from '../../lib/api';
+import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Today {
   tasks: { id: string; title: string; priority: string; dueAt: string | null }[];
@@ -15,13 +18,23 @@ interface Digest {
   suggestions: { notice: string; label: string }[];
 }
 
-export default async function TodayPage({ searchParams }: { searchParams: { workspaceId?: string } }) {
-  const ws = searchParams.workspaceId ?? DEMO_WORKSPACE;
-  const q = qs(ws);
-  const [today, digest] = await Promise.all([
-    api<Today>(`/today?${q}`),
-    api<Digest>(`/digests/morning?${q}`),
-  ]);
+export default function TodayPage() {
+  const [today, setToday] = useState<Today | null>(null);
+  const [digest, setDigest] = useState<Digest | null>(null);
+  const [denied, setDenied] = useState(false);
+
+  useEffect(() => {
+    const q = qs(currentWorkspace(), currentUserId());
+    Promise.all([apif<Today>(`/today?${q}`), apif<Digest>(`/digests/morning?${q}`)])
+      .then(([t, d]) => { setToday(t); setDigest(d); })
+      .catch((e: Error & { status?: number }) => { if (e.status === 401) setDenied(true); });
+  }, []);
+
+  if (denied) {
+    return <div className="card"><b>Please sign in.</b><p className="muted">Your session expired or is missing.</p><a href="/signin"><button className="btn primary">Sign in →</button></a></div>;
+  }
+  if (!today || !digest) return <div className="card"><b>Loading today…</b></div>;
+
   return (
     <>
       <div className="hero"><b>{digest.headline}</b></div>

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API, DEMO_USER } from '../../lib/api';
-import { currentWorkspace } from '../../components/WorkspaceBar';
+import { API } from '../../lib/api';
+import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Ev { id: string; title: string; startsAt: string; endsAt: string }
 
@@ -12,12 +12,14 @@ export default function CalendarPage() {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [msg, setMsg] = useState('');
-  const ws = currentWorkspace();
 
-  async function load(w = ws) {
+  const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
+
+  async function load() {
+    const q = Q();
     const [e, p] = await Promise.all([
-      fetch(`${API}/events?workspaceId=${w}&userId=${DEMO_USER}`).then((r) => r.json()),
-      fetch(`${API}/events/needing-prep?workspaceId=${w}&userId=${DEMO_USER}`).then((r) => r.json()),
+      fetch(`${API}/events?${q}`, { credentials: 'include' }).then((r) => r.json()),
+      fetch(`${API}/events/needing-prep?${q}`, { credentials: 'include' }).then((r) => r.json()),
     ]);
     setEvents(e);
     setPrep(p);
@@ -26,8 +28,9 @@ export default function CalendarPage() {
 
   async function create() {
     setMsg('');
-    const res = await fetch(`${API}/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: DEMO_USER, workspaceId: ws, title, startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString() }) });
+    const q = new URLSearchParams(Q());
+    const res = await fetch(`${API}/events`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: q.get('userId'), workspaceId: q.get('workspaceId'), title, startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString() }) });
     if (res.status === 409) {
       const j = await res.json();
       setMsg(`Conflict with "${j.with?.title ?? 'another meeting'}"`);
