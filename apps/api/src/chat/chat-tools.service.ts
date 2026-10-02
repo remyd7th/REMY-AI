@@ -76,9 +76,11 @@ export class ChatToolsService {
       },
     });
     return {
-      reply: `Drafted a follow-up to ${to}. It's pending your approval — nothing was sent.`,
+      reply: `Drafted a follow-up to ${to}. It's pending your approval — nothing was sent.${
+        to.includes('@') ? '' : ` I still need a real email address for ${to}: open Approvals, edit the draft's To field, then approve.`
+      } After approving, press Execute in Approvals to actually send it.`,
       suggestedActions: [
-        { label: 'Approve & send', method: 'POST', endpoint: `/api/approvals/${approval.id}/approve` },
+        { label: 'Approve', method: 'POST', endpoint: `/api/approvals/${approval.id}/approve` },
         { label: 'Review approvals', method: 'GET', endpoint: `/api/approvals?workspaceId=${workspaceId}&userId=${userId}` },
       ] as SuggestedAction[],
       pendingApproval: approval,

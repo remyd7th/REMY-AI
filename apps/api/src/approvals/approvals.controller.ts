@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -14,8 +15,8 @@ import { PermissionGate } from '../permissions/permission.gate';
 import { GoogleService } from '../google/google.service';
 
 // Approval lifecycle: create (pending) → approve|deny → execute (guarded) + audit.
-// sendEmail approvals actually deliver via Gmail when Google is connected;
-// otherwise execution is recorded without external side-effects.
+// sendEmail approvals deliver via Gmail when Google is connected; otherwise
+// execution is rejected with a clear error (nothing is silently recorded).
 @Controller('approvals')
 export class ApprovalsController {
   constructor(
@@ -73,8 +74,18 @@ export class ApprovalsController {
   ) {
     const pending = await this.prisma.approval.findUniqueOrThrow({ where: { id: body.approvalId } });
     const payload = pending.payload as { to?: string; subject?: string; body?: string };
+    if (body.action === 'sendEmail') {
+      if (!payload.to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.to)) {
+        throw new BadRequestException(
+          `Cannot send: "${payload.to ?? '(empty)'}" is not an email address. Edit the draft and set a real To address first.`,
+        );
+      }
+      if (!(await this.google.connected(body.userId))) {
+        throw new ForbiddenException('Google not connected — sign in with Google first, then execute again.');
+      }
+    }
     let delivered: unknown = { mode: 'recorded' };
-    if (body.action === 'sendEmail' && payload.to && payload.body && (await this.google.connected(body.userId))) {
+    if (body.action === 'sendEmail' && payload.to && payload.body) {
       delivered = await this.google.sendGmail(body.userId, payload.to, payload.subject ?? '(no subject)', payload.body);
     }
     const approval = await this.prisma.approval.update({

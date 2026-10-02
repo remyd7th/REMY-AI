@@ -13,6 +13,8 @@ export default function ApprovalsPage() {
   const [tab, setTab] = useState<Tab>('pending');
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  const [toDraft, setToDraft] = useState('');
+  const [notice, setNotice] = useState('');
 
   const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
   const auth = { credentials: 'include' as const, headers: { 'Content-Type': 'application/json' } };
@@ -29,8 +31,23 @@ export default function ApprovalsPage() {
 
   async function saveEdit(a: Approval) {
     await fetch(`${API}/approvals/${a.id}`, { ...auth, method: 'PATCH',
-      body: JSON.stringify({ payload: { ...a.payload, body: draft } }) });
+      body: JSON.stringify({ payload: { ...a.payload, to: toDraft || a.payload?.to, body: draft } }) });
     setEditing(null);
+    load();
+  }
+
+  async function execute(a: Approval) {
+    setNotice('');
+    const res = await fetch(`${API}/approvals/execute`, { ...auth, method: 'POST',
+      body: JSON.stringify({ userId: currentUserId(), workspaceId: currentWorkspace(), action: a.action, approvalId: a.id }) });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      const msg = (json as { message?: string })?.message ?? `Execute failed (${res.status}).`;
+      setNotice(Array.isArray(msg) ? msg.join(' ') : String(msg));
+      return;
+    }
+    const delivered = (json as { delivered?: unknown })?.delivered;
+    setNotice(`Sent — ${JSON.stringify(delivered)}`);
     load();
   }
 
@@ -49,6 +66,7 @@ export default function ApprovalsPage() {
           { id: 'rejected', label: 'Rejected', count: counts('rejected') },
         ]}
       />
+      {notice && <p role="status">{notice}</p>}
       {shown.length === 0 && <Empty>{tab === 'pending' ? 'Nothing waiting — enjoy the calm.' : `No ${tab} approvals.`}</Empty>}
       {shown.map((a) => (
         <div key={a.id}>
@@ -59,11 +77,13 @@ export default function ApprovalsPage() {
             status={a.status}
             onApprove={a.status === 'pending' ? () => decide(a.id, 'approve') : undefined}
             onDeny={a.status === 'pending' ? () => decide(a.id, 'deny') : undefined}
-            onEdit={a.status === 'pending' ? () => { setDraft(a.payload?.body ?? ''); setEditing(a.id); } : undefined}
+            onEdit={a.status === 'pending' ? () => { setDraft(a.payload?.body ?? ''); setToDraft(a.payload?.to ?? ''); setEditing(a.id); } : undefined}
+            onExecute={a.status === 'approved' ? () => execute(a) : undefined}
           />
           {editing === a.id && (
             <div className="card">
               <b>Edit draft</b>
+              <p><label>To <input value={toDraft} onChange={(e) => setToDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit recipient email" /></label></p>
               <p><textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: '100%' }} aria-label="Edit draft body" /></p>
               <div className="row">
                 <button className="btn primary" onClick={() => saveEdit(a)}>Save</button>

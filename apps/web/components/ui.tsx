@@ -51,9 +51,9 @@ export function ActivityRow({ icon, tone, title, sub, time }: { icon: string; to
   );
 }
 
-export function ApprovalCard({ action, body, channel, status, createdAt, onApprove, onDeny, onEdit }: {
+export function ApprovalCard({ action, body, channel, status, createdAt, onApprove, onDeny, onEdit, onExecute }: {
   action: string; body?: string; channel?: string; status: string; createdAt?: string;
-  onApprove?: () => void; onDeny?: () => void; onEdit?: () => void;
+  onApprove?: () => void; onDeny?: () => void; onEdit?: () => void; onExecute?: () => void;
 }) {
   return (
     <div className="approval-band">
@@ -75,7 +75,12 @@ export function ApprovalCard({ action, body, channel, status, createdAt, onAppro
           <div className="row" style={{ marginTop: 10 }}>
             {onEdit && <button className="btn small" onClick={onEdit}>Edit</button>}
             {onDeny && <button className="btn small danger" onClick={onDeny}>Reject</button>}
-            {onApprove && <button className="btn small secondary" onClick={onApprove}>Approve &amp; Send</button>}
+            {onApprove && <button className="btn small secondary" onClick={onApprove}>Approve</button>}
+          </div>
+        )}
+        {status === 'approved' && onExecute && (
+          <div className="row" style={{ marginTop: 10 }}>
+            <button className="btn small primary" onClick={onExecute}>Execute send</button>
           </div>
         )}
       </div>
