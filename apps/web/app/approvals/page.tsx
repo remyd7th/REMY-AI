@@ -1,42 +1,78 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { qs, apif } from '../../lib/api';
+import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { PageHead, Tabs, ApprovalCard, Empty } from '../../components/ui';
 
-interface Approval { id: string; action: string; status: string; payload: { body?: string; to?: string } }
+interface Approval { id: string; action: string; status: string; payload: { body?: string; to?: string; subject?: string } }
+
+type Tab = 'pending' | 'approved' | 'rejected';
 
 export default function ApprovalsPage() {
   const [items, setItems] = useState<Approval[]>([]);
+  const [tab, setTab] = useState<Tab>('pending');
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
 
-  const Q = () => qs(currentWorkspace(), currentUserId());
+  const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
+  const auth = { credentials: 'include' as const, headers: { 'Content-Type': 'application/json' } };
 
   async function load() {
-    setItems(await apif<Approval[]>(`/approvals?${Q()}`));
+    setItems(await fetch(`${API}/approvals?${Q()}`, { credentials: 'include' }).then((r) => r.json()));
   }
   useEffect(() => { load(); }, []);
 
   async function decide(id: string, how: 'approve' | 'deny') {
-    await apif(`/approvals/${id}/${how}`, { method: 'POST' });
+    await fetch(`${API}/approvals/${id}/${how}`, { ...auth, method: 'POST' });
     load();
   }
 
-  const pending = items.filter((a) => a.status === 'pending');
+  async function saveEdit(a: Approval) {
+    await fetch(`${API}/approvals/${a.id}`, { ...auth, method: 'PATCH',
+      body: JSON.stringify({ payload: { ...a.payload, body: draft } }) });
+    setEditing(null);
+    load();
+  }
+
+  const counts = (s: string) => items.filter((a) => a.status === (s === 'rejected' ? 'denied' : s)).length;
+  const shown = items.filter((a) => (tab === 'rejected' ? a.status === 'denied' : a.status === tab));
+
   return (
-    <div className="card">
-      <b>Approvals {pending.length > 0 && <span className="badge b-attn">{pending.length} pending</span>}</b>
-      {items.map((a) => (
-        <div key={a.id} className="card" style={{ boxShadow: 'none' }}>
-          <b>{a.action}</b> <span className={`badge ${a.status === 'pending' ? 'b-attn' : 'b-ok'}`}>{a.status}</span>
-          {a.payload?.body && <p className="muted">{String(a.payload.body).slice(0, 200)}</p>}
-          {a.status === 'pending' && (
-            <div className="row">
-              <button className="btn primary" onClick={() => decide(a.id, 'approve')}>Approve</button>
-              <button className="btn danger" onClick={() => decide(a.id, 'deny')}>Deny</button>
+    <>
+      <PageHead title="Approvals" sub="Review actions before Remy executes them. Sending emails, messages, calendar changes and payments always wait for you." />
+      <Tabs<Tab>
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'pending', label: 'Pending', count: counts('pending') },
+          { id: 'approved', label: 'Approved', count: counts('approved') },
+          { id: 'rejected', label: 'Rejected', count: counts('rejected') },
+        ]}
+      />
+      {shown.length === 0 && <Empty>{tab === 'pending' ? 'Nothing waiting — enjoy the calm.' : `No ${tab} approvals.`}</Empty>}
+      {shown.map((a) => (
+        <div key={a.id}>
+          <ApprovalCard
+            action={a.action}
+            body={editing === a.id ? undefined : a.payload?.body}
+            channel={a.payload?.to ? `To ${a.payload.to}` : undefined}
+            status={a.status}
+            onApprove={a.status === 'pending' ? () => decide(a.id, 'approve') : undefined}
+            onDeny={a.status === 'pending' ? () => decide(a.id, 'deny') : undefined}
+            onEdit={a.status === 'pending' ? () => { setDraft(a.payload?.body ?? ''); setEditing(a.id); } : undefined}
+          />
+          {editing === a.id && (
+            <div className="card">
+              <b>Edit draft</b>
+              <p><textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: '100%' }} aria-label="Edit draft body" /></p>
+              <div className="row">
+                <button className="btn primary" onClick={() => saveEdit(a)}>Save</button>
+                <button className="btn" onClick={() => setEditing(null)}>Cancel</button>
+              </div>
             </div>
           )}
         </div>
       ))}
-      {items.length === 0 && <p className="muted">Nothing awaiting approval.</p>}
-    </div>
+    </>
   );
 }

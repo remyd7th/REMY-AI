@@ -1,10 +1,21 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Action { label: string; method: string; endpoint: string; body?: unknown }
 interface Msg { from: 'me' | 'remy'; text: string; actions?: Action[]; via?: string }
+interface Convo { id: string; title: string; at: number; msgs: Msg[] }
+
+const KEY = 'remy-convos';
+
+function loadConvos(): Convo[] {
+  try {
+    return JSON.parse(window.localStorage.getItem(KEY) ?? '[]');
+  } catch {
+    return [];
+  }
+}
 
 async function runAction(a: Action): Promise<string> {
   const path = a.endpoint.startsWith('/api') ? a.endpoint.slice(4) : a.endpoint;
@@ -21,17 +32,46 @@ async function runAction(a: Action): Promise<string> {
 }
 
 export default function ChatPage() {
-  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [convos, setConvos] = useState<Convo[]>([]);
+  const [cur, setCur] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => { setConvos(loadConvos()); }, []);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(convos.slice(0, 20)));
+    } catch { /* private mode */ }
+  }, [convos]);
+
+  const convo = convos.find((c) => c.id === cur);
+  const msgs = convo?.msgs ?? [];
+
+  function persist(id: string, updater: (m: Msg[]) => Msg[]) {
+    setConvos((cs) => cs.map((c) => (c.id === id ? { ...c, msgs: updater(c.msgs) } : c)));
+  }
+
+  function start() {
+    const id = `c-${Date.now()}`;
+    setConvos((cs) => [{ id, title: 'New conversation', at: Date.now(), msgs: [] }, ...cs]);
+    setCur(id);
+  }
 
   async function send() {
     const text = input.trim();
     if (!text || busy) return;
     setInput('');
-    setMsgs((m) => [...m, { from: 'me', text }]);
+    let id = cur;
+    if (!id) {
+      id = `c-${Date.now()}`;
+      setConvos((cs) => [{ id: id as string, title: text.slice(0, 34), at: Date.now(), msgs: [] }, ...cs]);
+      setCur(id);
+    } else {
+      setConvos((cs) => cs.map((c) => (c.id === id ? { ...c, title: c.msgs.length === 0 ? text.slice(0, 34) : c.title } : c)));
+    }
+    const cid = id as string;
+    persist(cid, (m) => [...m, { from: 'me', text }]);
     setBusy(true);
-    const idx = msgs.length + 1;
     try {
       const res = await fetch(`${API}/chat/stream`, {
         method: 'POST',
@@ -45,7 +85,7 @@ export default function ChatPage() {
       let reply = '';
       let actions: Action[] = [];
       let via = '';
-      setMsgs((m) => [...m, { from: 'remy', text: '' }]);
+      persist(cid, (m) => [...m, { from: 'remy', text: '' }]);
       if (reader) {
         for (;;) {
           const { done, value } = await reader.read();
@@ -59,8 +99,13 @@ export default function ChatPage() {
             const evt = JSON.parse(line.slice(5).trim());
             if (evt.token) {
               reply += evt.token;
-              const text = reply;
-              setMsgs((m) => m.map((mm, i) => (i === idx ? { ...mm, text } : mm)));
+              const t = reply;
+              setConvos((cs) => cs.map((c) => {
+                if (c.id !== cid) return c;
+                const mm = [...c.msgs];
+                mm[mm.length - 1] = { ...mm[mm.length - 1], text: t };
+                return { ...c, msgs: mm };
+              }));
             }
             if (evt.done) {
               actions = evt.suggestedActions ?? [];
@@ -69,39 +114,53 @@ export default function ChatPage() {
           }
         }
       }
-      setMsgs((m) => m.map((mm, i) => (i === idx ? { ...mm, text: reply, actions, via } : mm)));
+      setConvos((cs) => cs.map((c) => {
+        if (c.id !== cid) return c;
+        const mm = [...c.msgs];
+        mm[mm.length - 1] = { ...mm[mm.length - 1], text: reply, actions, via };
+        return { ...c, msgs: mm };
+      }));
     } catch (e) {
-      setMsgs((m) => [...m, { from: 'remy', text: `Couldn't reach Remy: ${String(e)}` }]);
+      persist(cid, (m) => [...m, { from: 'remy', text: `Couldn't reach Remy: ${String(e)}` }]);
     }
     setBusy(false);
   }
 
   async function act(a: Action) {
     if (a.method !== 'GET' && !window.confirm(`${a.label}?`)) return;
-    setBusy(true);
     const out = await runAction(a);
-    setBusy(false);
-    setMsgs((m) => [...m, { from: 'remy', text: out }]);
+    if (cur) persist(cur, (m) => [...m, { from: 'remy', text: out }]);
   }
 
   return (
-    <div className="card">
-      <b>Chat with Remy</b>
-      <div style={{ margin: '12px 0' }}>
-        {msgs.map((m, i) => (
-          <div key={i}>
-            <div className={`bubble ${m.from}`}>{m.text}{m.via && <div className="muted" style={{ fontSize: 11 }}>via {m.via}</div>}</div>
-            <div className="row">
-              {m.actions?.map((a, j) => <button key={j} className="chip" onClick={() => act(a)}>{a.label}</button>)}
+    <div className="chat-layout">
+      <aside className="card chat-history" aria-label="Conversation history">
+        <button className="btn primary small" onClick={start}>+ New chat</button>
+        <div className="hist-list">
+          {convos.map((c) => (
+            <button key={c.id} className={c.id === cur ? 'active' : ''} onClick={() => setCur(c.id)}>{c.title}</button>
+          ))}
+        </div>
+        {convos.length === 0 && <p className="muted small">No conversations yet.</p>}
+      </aside>
+      <section className="card" aria-label="Remy conversation" aria-live="polite">
+        <b>Remy AI conversation</b>
+        <div style={{ margin: '12px 0' }}>
+          {msgs.map((m, i) => (
+            <div key={i}>
+              <div className={`bubble ${m.from}`}>{m.text}{m.via && <div className="muted" style={{ fontSize: 11 }}>via {m.via}</div>}</div>
+              <div className="row">
+                {m.actions?.map((a, j) => <button key={j} className="chip" onClick={() => act(a)}>{a.label}</button>)}
+              </div>
             </div>
-          </div>
-        ))}
-        {msgs.length === 0 && <p className="muted">Try: “organize my tasks for tomorrow” or “what needs my attention?”</p>}
-      </div>
-      <div className="row">
-        <input style={{ flex: 1 }} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask Remy…" />
-        <button className="btn primary" onClick={send} disabled={busy}>{busy ? '…' : 'Send'}</button>
-      </div>
+          ))}
+          {msgs.length === 0 && <p className="muted">Try: “Follow up with everyone I contacted this week.” Remy turns requests into workflow proposals.</p>}
+        </div>
+        <div className="row">
+          <input style={{ flex: 1 }} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask Remy…" aria-label="Message Remy" />
+          <button className="btn primary" onClick={send} disabled={busy}>{busy ? '…' : 'Send'}</button>
+        </div>
+      </section>
     </div>
   );
 }

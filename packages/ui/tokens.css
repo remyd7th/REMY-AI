@@ -1,17 +1,58 @@
-/* Remy AI — Design tokens (Phase 1, frozen) — flat solids, no gradients */
+/* Remy AI — Design tokens (unified system).
+   Flat solids only. No gradients. 2px ink borders. Hard offset shadows. */
+
 :root {
-  --remy-bg: #FFFFFF;
-  --remy-surface: #FFFFFF;
-  --remy-ink: #0A0A0F;
-  --remy-muted: #3F3F46;
-  --remy-line: #0A0A0F;
+  /* ---- brand ---- */
   --remy-primary: #6D28D9;
+  --remy-primary-deep: #4C1D95;
+  --remy-primary-soft: #EDE9FE;
   --remy-pink: #EC4899;
+  --remy-pink-soft: #FCE7F3;
   --remy-cyan: #06B6D4;
+  --remy-cyan-soft: #CFFAFE;
   --remy-lime: #A3E635;
+  --remy-lime-soft: #ECFCCB;
   --remy-sun: #FFC800;
+  --remy-sun-soft: #FEF3C7;
   --remy-red: #FF3B30;
-  --remy-radius: 10px;
+  --remy-red-soft: #FEE2E2;
+
+  /* ---- neutrals ---- */
+  --remy-ink: #0A0A0F;
+  --remy-muted: #52525B;
+  --remy-faint: #A1A1AA;
+  --remy-line: #0A0A0F;
+  --remy-bg: #FFFDF5;
+  --remy-surface: #FFFFFF;
+
+  /* ---- type scale ---- */
+  --remy-text-display: 34px;
+  --remy-text-page: 24px;
+  --remy-text-section: 19px;
+  --remy-text-card: 16px;
+  --remy-text-body: 14.5px;
+  --remy-text-small: 13px;
+  --remy-text-caption: 12px;
+
+  /* ---- spacing scale (4pt) ---- */
+  --remy-s1: 4px;
+  --remy-s2: 8px;
+  --remy-s3: 12px;
+  --remy-s4: 16px;
+  --remy-s5: 20px;
+  --remy-s6: 24px;
+  --remy-s8: 32px;
+
+  /* ---- borders / radius ---- */
+  --remy-border: 2px solid #0A0A0F;
+  --remy-radius: 14px;
+  --remy-radius-s: 9px;
+  --remy-radius-pill: 999px;
+
+  /* ---- hard offset shadows ---- */
+  --remy-shadow-s: 3px 3px 0 #0A0A0F;
   --remy-shadow: 4px 4px 0 #0A0A0F;
+  --remy-shadow-lg: 6px 6px 0 #0A0A0F;
+
   --remy-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

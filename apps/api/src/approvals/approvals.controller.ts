@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -52,6 +54,14 @@ export class ApprovalsController {
   @Post(':id/deny')
   deny(@Param('id') id: string) {
     return this.prisma.approval.update({ where: { id }, data: { status: 'denied' } });
+  }
+
+  // Edit a pending draft's payload before approving.
+  @Patch(':id')
+  async edit(@Param('id') id: string, @Body() body: { payload?: unknown }) {
+    const current = await this.prisma.approval.findUniqueOrThrow({ where: { id } });
+    if (current.status !== 'pending') throw new ForbiddenException('Only pending approvals can be edited');
+    return this.prisma.approval.update({ where: { id }, data: { payload: (body.payload ?? {}) as never } });
   }
 
   // Guarded execution: PermissionGate enforces always|ask|never before we run.

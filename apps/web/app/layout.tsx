@@ -2,39 +2,27 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import WorkspaceBar from '../components/WorkspaceBar';
 import GoogleButton from '../components/GoogleButton';
+import Nav from '../components/Nav';
 
 export const metadata = { title: 'Remy AI', description: 'Your intelligent AI work assistant' };
-
-const LINKS = [
-  ['Today', '/today'],
-  ['Chat', '/chat'],
-  ['Tasks', '/tasks'],
-  ['Calendar', '/calendar'],
-  ['Inbox', '/emails'],
-  ['Docs', '/documents'],
-  ['Follow-ups', '/followups'],
-  ['Approvals', '/approvals'],
-  ['Permissions', '/permissions'],
-  ['Get started', '/get-started'],
-  ['Sign in', '/signin'],
-];
 
 export default function Root({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <a className="skip" href="#main">Skip to content</a>
         <div className="wrap">
           <div className="topbar">
-            <span className="brand"><span className="brand-mark">☀</span> Remy AI</span>
-            <span className="row"><GoogleButton /><span className="tag">Can draft · asks before sending</span></span>
+            <a className="brand" href="/today" aria-label="Remy AI home"><span className="brand-mark" aria-hidden>☀</span> Remy AI</a>
+            <span className="row">
+              <a href="/activity" aria-label="Notifications" style={{ textDecoration: 'none' }}><span className="tag">🔔 Activity</span></a>
+              <GoogleButton />
+              <a href="/signin"><span className="tag">Profile</span></a>
+            </span>
           </div>
           <WorkspaceBar />
-          <nav className="nav">
-            {LINKS.map(([label, href]) => (
-              <a key={href} href={href}>{label}</a>
-            ))}
-          </nav>
-          {children}
+          <Nav />
+          <main id="main">{children}</main>
           <div className="footer">Remy AI · organize, assist, suggest, execute — you stay in control.</div>
         </div>
       </body>

@@ -14,6 +14,8 @@ import { MemoriesModule } from './memories/memories.module';
 import { DigestsModule } from './digests/digests.module';
 import { AuthModule } from './auth/auth.module';
 import { GoogleModule } from './google/google.module';
+import { WorkflowsModule } from './workflows/workflows.module';
+import { ActivityModule } from './activity/activity.module';
 import { TodayModule } from './today/today.module';
 
 @Module({
@@ -33,6 +35,8 @@ import { TodayModule } from './today/today.module';
     DigestsModule,
     AuthModule,
     GoogleModule,
+    WorkflowsModule,
+    ActivityModule,
     TodayModule,
   ],
 })

@@ -152,6 +152,36 @@ model Memory {
 // NOTE: vector embedding column for memory/doc retrieval added in Phase 6
 // via raw SQL: ALTER TABLE "Memory" ADD COLUMN embedding vector(1536);
 
+model Workflow {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String
+  description String    @default("")
+  trigger     String    @default("manual")
+  steps       Json      @default("[]")
+  status      String    @default("active") // active|paused|draft
+  lastRunAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  runs        WorkflowRun[]
+
+  @@index([workspaceId, status])
+}
+
+model WorkflowRun {
+  id          String    @id @default(cuid())
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  userId      String
+  workspaceId String
+  status      String    @default("completed") // completed|failed
+  log         Json      @default("[]")
+  createdAt   DateTime  @default(now())
+
+  @@index([workflowId, createdAt])
+}
+
 model Permission {
   id        String @id @default(cuid())
   userId    String
