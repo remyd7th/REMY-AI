@@ -22,8 +22,9 @@
   --remy-muted: #52525B;
   --remy-faint: #A1A1AA;
   --remy-line: #0A0A0F;
-  --remy-bg: #FFFDF5;
+  --remy-bg: #F7F5FF;
   --remy-surface: #FFFFFF;
+  --remy-rail: #FFFFFF;
 
   /* ---- type scale ---- */
   --remy-text-display: 34px;
@@ -54,5 +55,5 @@
   --remy-shadow: 4px 4px 0 #0A0A0F;
   --remy-shadow-lg: 6px 6px 0 #0A0A0F;
 
-  --remy-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --remy-font: Nunito, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

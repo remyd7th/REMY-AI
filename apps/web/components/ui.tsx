@@ -51,26 +51,34 @@ export function ActivityRow({ icon, tone, title, sub, time }: { icon: string; to
   );
 }
 
-export function ApprovalCard({ action, body, channel, status, onApprove, onDeny, onEdit }: {
-  action: string; body?: string; channel?: string; status: string;
+export function ApprovalCard({ action, body, channel, status, createdAt, onApprove, onDeny, onEdit }: {
+  action: string; body?: string; channel?: string; status: string; createdAt?: string;
   onApprove?: () => void; onDeny?: () => void; onEdit?: () => void;
 }) {
   return (
-    <div className="approval">
-      <div className="approval-head"><span aria-hidden>⚡</span> Action needs your approval</div>
-      <p style={{ margin: '10px 0 0' }}><b>{action}</b></p>
-      {body && <div className="approval-body">{body.slice(0, 400)}</div>}
-      <div className="row">
-        {channel && <span className="badge b-info">{channel}</span>}
-        <span className={`badge ${status === 'pending' ? 'b-attn' : 'b-ok'}`}>{status}</span>
-      </div>
-      {status === 'pending' && (onApprove || onDeny || onEdit) && (
-        <div className="row" style={{ marginTop: 10 }}>
-          {onEdit && <button className="btn" onClick={onEdit}>Edit</button>}
-          {onDeny && <button className="btn danger" onClick={onDeny}>Reject</button>}
-          {onApprove && <button className="btn primary" onClick={onApprove}>Approve &amp; Send</button>}
+    <div className="approval-band">
+      <div className="approval-band-head"><span aria-hidden>⚡</span> Action needs your approval</div>
+      <div className="approval-band-body">
+        <div className="row">
+          <span className="channel-ic" aria-hidden>✉</span>
+          <div>
+            <b>{action}</b>
+            {channel && <div style={{ marginTop: 4 }}><span className="badge b-info">{channel}</span></div>}
+          </div>
         </div>
-      )}
+        {body && <p className="quote">“{body.slice(0, 220)}”</p>}
+        <p className="caption">Created by Remy{createdAt ? ` · ${createdAt}` : ''}</p>
+        <div className="row" style={{ marginTop: 6 }}>
+          <span className={`badge ${status === 'pending' ? 'b-attn' : 'b-ok'}`}>{status}</span>
+        </div>
+        {status === 'pending' && (onApprove || onDeny || onEdit) && (
+          <div className="row" style={{ marginTop: 10 }}>
+            {onEdit && <button className="btn small" onClick={onEdit}>Edit</button>}
+            {onDeny && <button className="btn small danger" onClick={onDeny}>Reject</button>}
+            {onApprove && <button className="btn small secondary" onClick={onApprove}>Approve &amp; Send</button>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
