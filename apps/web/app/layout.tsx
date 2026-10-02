@@ -10,6 +10,8 @@ const LINKS = [
   ['Chat', '/chat'],
   ['Tasks', '/tasks'],
   ['Calendar', '/calendar'],
+  ['Inbox', '/emails'],
+  ['Docs', '/documents'],
   ['Follow-ups', '/followups'],
   ['Approvals', '/approvals'],
   ['Permissions', '/permissions'],
