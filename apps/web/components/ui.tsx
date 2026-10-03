@@ -71,16 +71,12 @@ export function ApprovalCard({ action, body, channel, status, createdAt, onAppro
         <div className="row" style={{ marginTop: 6 }}>
           <span className={`badge ${status === 'pending' ? 'b-attn' : 'b-ok'}`}>{status}</span>
         </div>
-        {status === 'pending' && (onApprove || onDeny || onEdit) && (
+        {(status === 'pending' || (status === 'approved' && (onEdit || onExecute))) && (
           <div className="row" style={{ marginTop: 10 }}>
             {onEdit && <button className="btn small" onClick={onEdit}>Edit</button>}
-            {onDeny && <button className="btn small danger" onClick={onDeny}>Reject</button>}
-            {onApprove && <button className="btn small secondary" onClick={onApprove}>Approve</button>}
-          </div>
-        )}
-        {status === 'approved' && onExecute && (
-          <div className="row" style={{ marginTop: 10 }}>
-            <button className="btn small primary" onClick={onExecute}>Execute send</button>
+            {status === 'pending' && onDeny && <button className="btn small danger" onClick={onDeny}>Reject</button>}
+            {status === 'pending' && onApprove && <button className="btn small secondary" onClick={onApprove}>Approve</button>}
+            {status === 'approved' && onExecute && <button className="btn small primary" onClick={onExecute}>Execute send</button>}
           </div>
         )}
       </div>

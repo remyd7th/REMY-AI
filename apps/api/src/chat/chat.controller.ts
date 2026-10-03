@@ -31,7 +31,8 @@ export class ChatController {
       case 'briefing':
         return { ...(await this.tools.briefing(userId, workspaceId)), via: 'tools' };
       case 'followup': {
-        const to = /to\s+([A-Z][a-z]+)/.exec(message)?.[1] ?? 'them';
+        const email = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.exec(message)?.[0];
+        const to = email ?? /to\s+([A-Z][a-z]+)/.exec(message)?.[1] ?? 'them';
         return { ...(await this.tools.draftFollowUp(userId, workspaceId, to, message)), via: 'tools' };
       }
       default: {

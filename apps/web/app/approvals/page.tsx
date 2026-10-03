@@ -76,8 +76,8 @@ export default function ApprovalsPage() {
             channel={a.payload?.to ? `To ${a.payload.to}` : undefined}
             status={a.status}
             onApprove={a.status === 'pending' ? () => decide(a.id, 'approve') : undefined}
-            onDeny={a.status === 'pending' ? () => decide(a.id, 'deny') : undefined}
-            onEdit={a.status === 'pending' ? () => { setDraft(a.payload?.body ?? ''); setToDraft(a.payload?.to ?? ''); setEditing(a.id); } : undefined}
+            onDeny={(a.status === 'pending' || a.status === 'approved') ? () => decide(a.id, 'deny') : undefined}
+            onEdit={(a.status === 'pending' || a.status === 'approved') ? () => { setDraft(a.payload?.body ?? ''); setToDraft(a.payload?.to ?? ''); setEditing(a.id); } : undefined}
             onExecute={a.status === 'approved' ? () => execute(a) : undefined}
           />
           {editing === a.id && (

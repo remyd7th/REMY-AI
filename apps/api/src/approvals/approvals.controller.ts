@@ -57,12 +57,18 @@ export class ApprovalsController {
     return this.prisma.approval.update({ where: { id }, data: { status: 'denied' } });
   }
 
-  // Edit a pending draft's payload before approving.
+  // Edit a draft's payload before it is executed. Editing an approved draft
+  // sends it back to pending so the change gets re-reviewed.
   @Patch(':id')
   async edit(@Param('id') id: string, @Body() body: { payload?: unknown }) {
     const current = await this.prisma.approval.findUniqueOrThrow({ where: { id } });
-    if (current.status !== 'pending') throw new ForbiddenException('Only pending approvals can be edited');
-    return this.prisma.approval.update({ where: { id }, data: { payload: (body.payload ?? {}) as never } });
+    if (current.status !== 'pending' && current.status !== 'approved') {
+      throw new ForbiddenException('Only pending or approved drafts can be edited');
+    }
+    return this.prisma.approval.update({
+      where: { id },
+      data: { payload: (body.payload ?? {}) as never, status: 'pending' },
+    });
   }
 
   // Guarded execution: PermissionGate enforces always|ask|never before we run.
