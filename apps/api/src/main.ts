@@ -11,11 +11,15 @@ if (fs.existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+  // Origins are env-driven so the same build runs on localhost and on a
+  // VPS domain: set WEB_URL (web app) and BETTER_AUTH_URL (this API).
+  const port = Number(process.env.API_PORT ?? 4000);
+  const webUrl = process.env.WEB_URL ?? 'http://localhost:3000';
+  const apiUrl = process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`;
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    origin: [webUrl, apiUrl],
     credentials: true,
   });
-  const port = Number(process.env.API_PORT ?? 4000);
   await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`Remy API listening on http://localhost:${port}/api`);

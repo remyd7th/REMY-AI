@@ -25,7 +25,12 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
   basePath: '/api/auth',
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: ['http://localhost:4000', 'http://localhost:3000'],
+  // Env-driven so Google OAuth + session cookies work on a VPS domain too:
+  // set BETTER_AUTH_URL (this API) and WEB_URL (web app) in .env.
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
+    process.env.WEB_URL ?? 'http://localhost:3000',
+  ],
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: { enabled: false },
   ...(googleId && googleSecret
