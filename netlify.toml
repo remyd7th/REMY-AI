@@ -1,0 +1,13 @@
+# Netlify deploy config for the Remy AI web app (Next.js, pnpm monorepo).
+# The API (NestJS) and Postgres do NOT run on Netlify — see Docs/Deployment-Netlify.md.
+
+[build]
+  base = "/"
+  command = "pnpm install && pnpm --filter web run build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# NEXT_PUBLIC_API_URL is set in the Netlify UI (Site settings → Environment
+# variables), e.g. https://remy-ai-api.onrender.com/api — NOT in this file.
