@@ -8,7 +8,7 @@ import { auth } from './auth';
 export class SessionMiddleware implements NestMiddleware {
   async use(req: any, _res: any, next: () => void) {
     const url: string = req.originalUrl ?? req.url ?? req.path ?? '';
-    if (url.startsWith('/api/auth')) return next();
+    if (url.startsWith('/api/auth') || url.startsWith('/api/health')) return next();
     const session = await auth.api
       .getSession({ headers: req.headers })
       .catch(() => null);

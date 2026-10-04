@@ -14,6 +14,7 @@ import { MemoriesModule } from './memories/memories.module';
 import { DigestsModule } from './digests/digests.module';
 import { AuthModule } from './auth/auth.module';
 import { GoogleModule } from './google/google.module';
+import { HealthModule } from './health/health.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { ActivityModule } from './activity/activity.module';
 import { TodayModule } from './today/today.module';
@@ -35,6 +36,7 @@ import { TodayModule } from './today/today.module';
     DigestsModule,
     AuthModule,
     GoogleModule,
+    HealthModule,
     WorkflowsModule,
     ActivityModule,
     TodayModule,

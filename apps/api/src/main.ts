@@ -13,9 +13,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   // Origins are env-driven so the same build runs on localhost and on a
   // VPS domain: set WEB_URL (web app) and BETTER_AUTH_URL (this API).
+  // Normalized (trimmed, no trailing slash) so copy-paste can't break matching.
+  const norm = (v: string) => v.trim().replace(/\/+$/, '');
   const port = Number(process.env.API_PORT ?? 4000);
-  const webUrl = process.env.WEB_URL ?? 'http://localhost:3000';
-  const apiUrl = process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`;
+  const webUrl = norm(process.env.WEB_URL ?? 'http://localhost:3000');
+  const apiUrl = norm(process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`);
   app.enableCors({
     origin: [webUrl, apiUrl],
     credentials: true,
