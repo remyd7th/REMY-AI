@@ -14,6 +14,7 @@ export class HealthController {
     };
     return {
       ok: true,
+      marker: 'health-v2',
       env: {
         databaseUrl: !!process.env.DATABASE_URL,
         betterAuthSecret: !!process.env.BETTER_AUTH_SECRET,
