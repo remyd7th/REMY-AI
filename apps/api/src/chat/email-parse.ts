@@ -15,21 +15,37 @@ export interface ParsedEmail {
 }
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-const LEAD_VERBS = /^(send|email|e-mail|draft|write|tell|notify|forward)\b/i;
+const LEAD = /^(send|email|e-mail|draft|write|tell|notify|forward)\b/i;
 
 function emailsIn(text: string): string[] {
   return Array.from(new Set((text.match(EMAIL_RE) ?? []).map((e) => e.toLowerCase())));
 }
 
-/** Split "Sarah, David and John" / "Sarah and David" into names. */
-function splitNames(chunk: string): string[] {
-  return chunk
-    .split(/,|\band\b|&|\+/i)
-    .map((s) => s.replace(LEAD_VERBS, '').trim().replace(/^[.\s]+|[.\s]+$/g, ''))
-    .map((s) => s.replace(/^(to|the)\s+/i, '').trim())
-    .filter((s) => s.length > 0 && !/^(please|kindly|them|they|him|her|me|us)$/i.test(s))
-    .map((s) => (s.length <= 60 ? s : ''))
-    .filter(Boolean);
+/** Leading capitalized name (1–2 words) in a segment, else none. */
+function namesIn(segment: string): string[] {
+  const m = segment
+    .replace(EMAIL_RE, ' ')
+    .trim()
+    .match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+  return m ? [m[1]] : [];
+}
+
+function splitSegments(chunk: string): string[] {
+  return chunk.split(/,|\band\b|&|\+/i).map((s) => s.trim()).filter(Boolean);
+}
+
+/** Drop the content/attachment clauses so only the recipient zone remains. */
+function recipientZone(text: string): string {
+  let s = text;
+  s = s.replace(/\battach(?:ing|ed|ment)?\s+(?:the\s+)?.+?(?:\.|$)/gi, ' ');
+  s = s.replace(/\bwith\s+(?:the\s+)?.+?\s+attached\.?/gi, ' ');
+  const cut = s.search(/\bthat\b|telling|about|regarding|concerning|letting\b|\blet\b/i);
+  if (cut > 0) s = s.slice(0, cut);
+  return s
+    .replace(LEAD, '')
+    .replace(/^\s*(an?|this|that|the)?\s*(email|message)(\s+to)?/i, '')
+    .replace(/^\s*to\s+/i, '')
+    .trim();
 }
 
 function subjectFor(message: string, content: string): string {
@@ -56,68 +72,71 @@ function toneFor(message: string): string {
   return 'professional';
 }
 
-/** The "what to say" clause: after that/telling/about/regarding, else remainder. */
+/** The "what to say" clause; '' when the message is only routing. */
 function contentOf(message: string): string {
-  let m = /telling (?:them|him|her|everyone) (?:that )?(.+)/i.exec(message)?.[1]
+  const m = /telling (?:them|him|her|everyone) (?:that )?(.+)/i.exec(message)?.[1]
+    ?? /let (?:them|him|her|everyone|me) know (?:that )?(.+)/i.exec(message)?.[1]
     ?? /that (.+)/i.exec(message)?.[1]
     ?? /(?:about|regarding|concerning) (.+)/i.exec(message)?.[1]
     ?? '';
-  m = m.replace(/\s*(please\s+)?(send|email|draft)(\s+it)?\s*$/i, '').trim();
-  if (!m) {
-    m = message
-      .replace(LEAD_VERBS, '')
-      .replace(/^(an?\s+)?email\s+(to\s+)?/i, '')
-      .trim();
-  }
-  m = m.replace(/^[.\s]+/, '').trim();
-  return m.charAt(0).toUpperCase() + m.slice(1);
+  return m
+    .replace(/\s*(please\s+)?(send|email|draft)(\s+it)?\s*$/i, '')
+    .replace(/^[.\s]+|[.\s]+$/g, '')
+    .trim();
+}
+
+function capitalize(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+function attachmentOf(message: string): string | undefined {
+  const explicit = /attach(?:ing|ed|ment)?\s+(?:the\s+)?(.+?)(?:\.|$)/i.exec(message)?.[1]?.trim()
+    ?? /with\s+(?:the\s+)?(.+?)\s+attached/i.exec(message)?.[1]?.trim();
+  if (explicit) return explicit;
+  return /(?:send|email|forward)\s+(?:the\s+)?([a-z][\w ]*?)\s+to\b/i.exec(message)?.[1]?.trim() || undefined;
 }
 
 export function parseEmailRequest(message: string): ParsedEmail {
   const msg = message.trim();
 
   // --- zones: bcc / cc split off first so addresses land in the right bucket
-  const bccMatch = /\bbcc\b[:\s]+([^.;]+)/i.exec(msg);
-  const ccMatch = /\b(?:cc|carbon copy|copy|copies)\b[:\s]+([^.;]+)/i.exec(msg);
+  const bccZone = /\bbcc\b[:\s]+([^;\n]+)/i.exec(msg)?.[1] ?? '';
+  const ccZone = /\b(?:cc|carbon copy|cop(?:y|ies))\b[:\s]+([^;\n]+)/i.exec(msg)?.[1] ?? '';
   let rest = msg;
-  const bccRaw = bccMatch?.[1] ?? '';
-  const ccRaw = ccMatch?.[1] ?? '';
-  if (bccMatch) rest = rest.replace(bccMatch[0], ' ');
-  if (ccMatch) rest = rest.replace(ccMatch[0], ' ');
+  if (bccZone) rest = rest.replace(bccZone, ' ');
+  if (ccZone) rest = rest.replace(ccZone, ' ');
 
-  const bcc = emailsIn(bccRaw);
-  const cc = emailsIn(ccRaw);
-  const toEmails = emailsIn(rest).filter((e) => !cc.includes(e) && !bcc.includes(e));
-
-  // --- names live in the recipient region: before the content clause
-  const cut = rest.search(/\bthat\b|telling|about|regarding|concerning|letting\b/i);
-  const region = (cut > 0 ? rest.slice(0, cut) : rest).replace(EMAIL_RE, ' ');
-  const groupWord = /\b(the\s+whole\s+team|the\s+team|everyone|all\s+clients|the\s+three\s+clients)\b/i.exec(region)?.[0];
-  const toNames = splitNames(region).filter(
-    (n) => !ccRaw.toLowerCase().includes(n.toLowerCase()) && !bccRaw.toLowerCase().includes(n.toLowerCase()),
+  const bcc = [...emailsIn(bccZone), ...splitSegments(bccZone).flatMap(namesIn)];
+  const cc = [...emailsIn(ccZone), ...splitSegments(ccZone).flatMap(namesIn)];
+  const zone = recipientZone(rest);
+  const to = [...emailsIn(zone), ...splitSegments(zone).flatMap(namesIn)];
+  const seen = new Set<string>();
+  const dedup = (xs: string[]) => xs.filter((x) => (seen.has(x.toLowerCase()) ? false : (seen.add(x.toLowerCase()), true)));
+  const ccFinal = dedup(cc);
+  const bccFinal = dedup(bcc);
+  const toFinal = dedup(to).filter(
+    (t) => !ccFinal.some((c) => c.toLowerCase() === t.toLowerCase()) && !bccFinal.some((c) => c.toLowerCase() === t.toLowerCase()),
   );
 
-  const to = [...toEmails, ...toNames.filter((n) => !toEmails.includes(n.toLowerCase()))];
-  const ccNames = splitNames(ccRaw).filter((n) => !emailsIn(ccRaw).includes(n.toLowerCase()));
-  const bccNames = splitNames(bccRaw).filter((n) => !emailsIn(bccRaw).includes(n.toLowerCase()));
-  cc.push(...ccNames);
-  bcc.push(...bccNames);
+  const groupWord = /\b(the\s+whole\s+team|the\s+team|everyone|the\s+three\s+clients|all\s+clients)\b/i.exec(zone)?.[0];
+  const unresolved = Array.from(
+    new Set([...toFinal, ...ccFinal, ...bccFinal].filter((n) => !isEmail(n)).concat(groupWord ? [groupWord] : [])),
+  );
 
-  const unresolved = [...toNames, ...ccNames, ...bccNames];
-  if (groupWord && !unresolved.includes(groupWord)) unresolved.push(groupWord);
-
-  const content = contentOf(msg);
-  const attachmentHint = /attach(?:ing|ed|ment)?\s+(?:the\s+)?(.+?)(?:\.|$)/i.exec(msg)?.[1]?.trim()
-    ?? /with\s+(?:the\s+)?(.+?)\s+attached/i.exec(msg)?.[1]?.trim();
+  const content = capitalize(contentOf(msg));
+  const rawHint = attachmentOf(msg);
+  const attachmentHint = rawHint && !/^(an?|this|that|the)?\s*(email|e-mail|message)s?$/i.test(rawHint)
+    ? rawHint
+    : undefined;
 
   return {
-    to: to.length > 0 ? to : [],
-    cc,
-    bcc,
+    to: toFinal,
+    cc: ccFinal,
+    bcc: bccFinal,
     subject: subjectFor(msg, content),
-    content: content || 'Please see my message below.',
+    content,
     tone: toneFor(msg),
-    attachmentHint: attachmentHint || undefined,
+    attachmentHint,
     unresolved,
   };
 }

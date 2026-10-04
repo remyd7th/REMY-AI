@@ -108,6 +108,8 @@ export class ChatToolsService {
   async draftEmail(userId: string, workspaceId: string, parsed: ParsedEmail) {
     const named = parsed.to.filter((t) => !isEmail(t));
     const greetName = parsed.to.length > 1 ? 'all' : (parsed.to[0] ?? 'there');
+    const content = parsed.content
+      || (parsed.attachmentHint ? `Please find ${parsed.attachmentHint} attached` : 'Please see below');
     const approval = await this.prisma.approval.create({
       data: {
         userId,
@@ -120,7 +122,7 @@ export class ChatToolsService {
           subject: parsed.subject,
           purpose: 'email',
           tone: parsed.tone,
-          body: composeBody(greetName, parsed.content, parsed.tone),
+          body: composeBody(greetName, content, parsed.tone),
           attachments: parsed.attachmentHint ? [parsed.attachmentHint] : [],
           unresolved: parsed.unresolved,
         },
@@ -130,7 +132,9 @@ export class ChatToolsService {
     const lines = [`I've prepared the email for ${who}. Please review it before I send it — nothing was sent.`];
     if (parsed.cc.length > 0) lines.push(`CC: ${formatList(parsed.cc)}.`);
     if (parsed.bcc.length > 0) lines.push(`BCC: ${formatList(parsed.bcc)}.`);
-    if (named.length > 0 || parsed.unresolved.length > 0) {
+    if (parsed.to.length === 0 && parsed.unresolved.length === 0) {
+      lines.push('Who should receive it? Reply with names or addresses, or set them in Approvals.');
+    } else if (named.length > 0 || parsed.unresolved.length > 0) {
       const missing = Array.from(new Set([...named, ...parsed.unresolved]));
       lines.push(
         `I still need real email addresses for ${formatList(missing)} — open the draft in Approvals and edit the To field, or reply with their addresses.`,
