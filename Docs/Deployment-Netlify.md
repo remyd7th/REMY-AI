@@ -29,8 +29,10 @@ CORS/origins. Nothing secret is committed — secrets live in host dashboards.
 3. Environment variables:
    - `DATABASE_URL` = Neon string
    - `BETTER_AUTH_SECRET` = new random 32+ chars (generate fresh, don't reuse local)
-   - `BETTER_AUTH_URL` = `https://<your-api>.onrender.com`
-   - `WEB_URL` = `https://<your-site>.netlify.app`
+   - `BETTER_AUTH_URL` = `https://remyaii.netlify.app` (the PUBLIC origin users
+     see — the OAuth callback goes through the Netlify proxy, so this must be
+     the Netlify domain, not the Render one)
+   - `WEB_URL` = `https://remyaii.netlify.app`
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (same values as local)
    - `R2_*` (same values as local)
    - `GROQ_API_KEY`, `GROQ_MODEL=llama-3.3-70b-versatile`, `LLM_PROVIDER=groq`
@@ -42,14 +44,23 @@ CORS/origins. Nothing secret is committed — secrets live in host dashboards.
 ## D. Web (Netlify, ~5 min, you)
 
 1. https://app.netlify.com → Add new site → Import from GitHub → `REMY-AI`.
-   (Config auto-reads from `netlify.toml`.)
+   (Config auto-reads from `netlify.toml`, including the `/api/*` proxy.)
 2. Site settings → Environment variables → add:
-   - `NEXT_PUBLIC_API_URL` = `https://<your-api>.onrender.com/api`
+   - `NEXT_PUBLIC_API_URL` = `https://remyaii.netlify.app/api` (same origin —
+     proxied to Render by `netlify.toml`; this keeps login cookies first-party)
 3. Site settings → Change site name → e.g. `remy-ai` → live at
    `https://remy-ai.netlify.app` (or your pick, if free).
 4. Trigger deploy (auto on push afterwards).
 
-## E. Verify
+## E. Google Console redirect URIs (both required)
+
+Your OAuth client must list **both** callback URLs (add each under
+Authorized redirect URIs):
+- `https://remy-ai-api.onrender.com/api/auth/callback/google` (direct API)
+- `https://remyaii.netlify.app/api/auth/callback/google` (via Netlify proxy —
+  this is the one the app actually uses)
+
+## F. Verify
 
 1. Open the Netlify URL → landing loads.
 2. Sign in with Google (add your prod callback + domain to test users if needed).

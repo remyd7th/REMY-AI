@@ -10,4 +10,13 @@
   NODE_VERSION = "22"
 
 # NEXT_PUBLIC_API_URL is set in the Netlify UI (Site settings → Environment
-# variables), e.g. https://remy-ai-api.onrender.com/api — NOT in this file.
+# variables) to the SAME ORIGIN: https://remyaii.netlify.app/api
+# (proxied below to Render). Same-origin keeps login + session cookies
+# first-party, which Chrome requires — cross-site cookies get blocked.
+
+# Reverse proxy: same-origin /api/* → Render. Forwards path, query,
+# method, headers and cookies transparently.
+[[redirects]]
+  from = "/api/*"
+  to = "https://remy-ai-api.onrender.com/api/:splat"
+  status = 200
