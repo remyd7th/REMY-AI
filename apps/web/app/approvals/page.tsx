@@ -4,7 +4,17 @@ import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 import { PageHead, Tabs, ApprovalCard, Empty } from '../../components/ui';
 
-interface Approval { id: string; action: string; status: string; payload: { body?: string; to?: string; subject?: string } }
+interface Approval {
+  id: string; action: string; status: string;
+  payload: {
+    body?: string; subject?: string;
+    to?: string | string[]; cc?: string | string[]; bcc?: string | string[];
+    attachments?: string[]; unresolved?: string[];
+  };
+}
+
+const listOf = (v: string | string[] | undefined): string[] =>
+  Array.isArray(v) ? v : (v ? [v] : []);
 
 type Tab = 'pending' | 'approved' | 'rejected';
 
@@ -14,7 +24,21 @@ export default function ApprovalsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [toDraft, setToDraft] = useState('');
+  const [ccDraft, setCcDraft] = useState('');
+  const [bccDraft, setBccDraft] = useState('');
+  const [subjectDraft, setSubjectDraft] = useState('');
   const [notice, setNotice] = useState('');
+
+  const csv = (v: string | string[] | undefined) => listOf(v).join(', ');
+  const startEdit = (a: Approval) => {
+    setDraft(a.payload?.body ?? '');
+    setToDraft(csv(a.payload?.to));
+    setCcDraft(csv(a.payload?.cc));
+    setBccDraft(csv(a.payload?.bcc));
+    setSubjectDraft(a.payload?.subject ?? '');
+    setEditing(a.id);
+  };
+  const splitCsv = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 
   const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
   const auth = { credentials: 'include' as const, headers: { 'Content-Type': 'application/json' } };
@@ -31,7 +55,15 @@ export default function ApprovalsPage() {
 
   async function saveEdit(a: Approval) {
     await fetch(`${API}/approvals/${a.id}`, { ...auth, method: 'PATCH',
-      body: JSON.stringify({ payload: { ...a.payload, to: toDraft || a.payload?.to, body: draft } }) });
+      body: JSON.stringify({ payload: {
+        ...a.payload,
+        to: splitCsv(toDraft),
+        cc: splitCsv(ccDraft),
+        bcc: splitCsv(bccDraft),
+        subject: subjectDraft,
+        body: draft,
+        unresolved: [],
+      } }) });
     setEditing(null);
     load();
   }
@@ -73,17 +105,25 @@ export default function ApprovalsPage() {
           <ApprovalCard
             action={a.action}
             body={editing === a.id ? undefined : a.payload?.body}
-            channel={a.payload?.to ? `To ${a.payload.to}` : undefined}
+            channel={listOf(a.payload?.to).length > 0 ? `To ${listOf(a.payload?.to).join(', ')}` : undefined}
+            cc={listOf(a.payload?.cc).length > 0 ? `CC ${listOf(a.payload?.cc).join(', ')}` : undefined}
+            bcc={listOf(a.payload?.bcc).length > 0 ? `BCC ${listOf(a.payload?.bcc).join(', ')}` : undefined}
+            subject={a.payload?.subject}
+            attachments={a.payload?.attachments}
+            unresolved={a.payload?.unresolved}
             status={a.status}
             onApprove={a.status === 'pending' ? () => decide(a.id, 'approve') : undefined}
             onDeny={(a.status === 'pending' || a.status === 'approved') ? () => decide(a.id, 'deny') : undefined}
-            onEdit={(a.status === 'pending' || a.status === 'approved') ? () => { setDraft(a.payload?.body ?? ''); setToDraft(a.payload?.to ?? ''); setEditing(a.id); } : undefined}
+            onEdit={(a.status === 'pending' || a.status === 'approved') ? () => startEdit(a) : undefined}
             onExecute={a.status === 'approved' ? () => execute(a) : undefined}
           />
           {editing === a.id && (
             <div className="card">
               <b>Edit draft</b>
-              <p><label>To <input value={toDraft} onChange={(e) => setToDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit recipient email" /></label></p>
+              <p><label>To (comma-separated) <input value={toDraft} onChange={(e) => setToDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit recipients" /></label></p>
+              <p><label>CC <input value={ccDraft} onChange={(e) => setCcDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit CC recipients" /></label></p>
+              <p><label>BCC <input value={bccDraft} onChange={(e) => setBccDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit BCC recipients" /></label></p>
+              <p><label>Subject <input value={subjectDraft} onChange={(e) => setSubjectDraft(e.target.value)} style={{ width: '100%' }} aria-label="Edit subject" /></label></p>
               <p><textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} style={{ width: '100%' }} aria-label="Edit draft body" /></p>
               <div className="row">
                 <button className="btn primary" onClick={() => saveEdit(a)}>Save</button>

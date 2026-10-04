@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { formatList, isEmail, type ParsedEmail } from './email-parse';
 
 export interface SuggestedAction {
   label: string;
@@ -10,6 +11,20 @@ export interface SuggestedAction {
 
 // Rule-based tool layer (v1). Reads execute directly; every write creates
 // a pending Approval — nothing sends/schedules without the gate.
+const EMAIL_TONES: Record<string, { greeting: string; close: string }> = {
+  professional: { greeting: 'Hello', close: 'Best regards' },
+  friendly: { greeting: 'Hi there', close: 'Warm regards' },
+  formal: { greeting: 'Dear', close: 'Respectfully' },
+  urgent: { greeting: 'Hello', close: 'Thanks for acting quickly on this.\n\nBest regards' },
+};
+
+function composeBody(greetName: string, content: string, tone: string): string {
+  const t = EMAIL_TONES[tone] ?? EMAIL_TONES.professional;
+  const sentence =
+    content.endsWith('.') || content.endsWith('!') || content.endsWith('?') ? content : `${content}.`;
+  return `${t.greeting} ${greetName},\n\n${sentence}\n\n${t.close}`;
+}
+
 @Injectable()
 export class ChatToolsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -79,6 +94,52 @@ export class ChatToolsService {
       reply: `Drafted a follow-up to ${to}. It's pending your approval — nothing was sent.${
         to.includes('@') ? '' : ` I still need a real email address for ${to}: open Approvals, edit the draft's To field, then approve.`
       } After approving, press Execute in Approvals to actually send it.`,
+      suggestedActions: [
+        { label: 'Approve', method: 'POST', endpoint: `/api/approvals/${approval.id}/approve` },
+        { label: 'Review approvals', method: 'GET', endpoint: `/api/approvals?workspaceId=${workspaceId}&userId=${userId}` },
+      ] as SuggestedAction[],
+      pendingApproval: approval,
+    };
+  }
+
+  // Multi-recipient email draft: To + CC + BCC arrays, editable subject/body.
+  // Anything that isn't an address stays in `unresolved` so the UI (and the
+  // reply text) asks for clarification instead of guessing.
+  async draftEmail(userId: string, workspaceId: string, parsed: ParsedEmail) {
+    const named = parsed.to.filter((t) => !isEmail(t));
+    const greetName = parsed.to.length > 1 ? 'all' : (parsed.to[0] ?? 'there');
+    const approval = await this.prisma.approval.create({
+      data: {
+        userId,
+        workspaceId,
+        action: 'sendEmail',
+        payload: {
+          to: parsed.to,
+          cc: parsed.cc,
+          bcc: parsed.bcc,
+          subject: parsed.subject,
+          purpose: 'email',
+          tone: parsed.tone,
+          body: composeBody(greetName, parsed.content, parsed.tone),
+          attachments: parsed.attachmentHint ? [parsed.attachmentHint] : [],
+          unresolved: parsed.unresolved,
+        },
+      },
+    });
+    const who = formatList(parsed.to.length > 0 ? parsed.to : ['(no recipients yet)']);
+    const lines = [`I've prepared the email for ${who}. Please review it before I send it — nothing was sent.`];
+    if (parsed.cc.length > 0) lines.push(`CC: ${formatList(parsed.cc)}.`);
+    if (parsed.bcc.length > 0) lines.push(`BCC: ${formatList(parsed.bcc)}.`);
+    if (named.length > 0 || parsed.unresolved.length > 0) {
+      const missing = Array.from(new Set([...named, ...parsed.unresolved]));
+      lines.push(
+        `I still need real email addresses for ${formatList(missing)} — open the draft in Approvals and edit the To field, or reply with their addresses.`,
+      );
+    }
+    if (parsed.attachmentHint) lines.push(`I'll attach "${parsed.attachmentHint}" at send time (matched against your Documents).`);
+    lines.push('After approving, press Execute in Approvals to actually send it.');
+    return {
+      reply: lines.join(' '),
       suggestedActions: [
         { label: 'Approve', method: 'POST', endpoint: `/api/approvals/${approval.id}/approve` },
         { label: 'Review approvals', method: 'GET', endpoint: `/api/approvals?workspaceId=${workspaceId}&userId=${userId}` },

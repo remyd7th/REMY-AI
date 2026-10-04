@@ -36,6 +36,28 @@ export default function ChatPage() {
   const [cur, setCur] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+
+  // Voice input (Web Speech API): dictation lands in the same box, so voice
+  // instructions flow through the identical draft → review → approve → send path.
+  function dictate() {
+    const SR = (window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any })
+      .SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
+    if (!SR) {
+      persist(cur as string, (m) => [...m, { from: 'remy', text: 'Voice input is not supported in this browser — please type instead.' }]);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    setListening(true);
+    rec.onresult = (e: { results: { transcript: string }[][] }) => {
+      setInput((s) => (s ? `${s} ` : '') + e.results[0][0].transcript);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    rec.start();
+  }
 
   useEffect(() => { setConvos(loadConvos()); }, []);
   useEffect(() => {
@@ -157,7 +179,8 @@ export default function ChatPage() {
           {msgs.length === 0 && <p className="muted">Try: “Follow up with everyone I contacted this week.” Remy turns requests into workflow proposals.</p>}
         </div>
         <div className="row">
-          <input style={{ flex: 1 }} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask Remy…" aria-label="Message Remy" />
+          <input style={{ flex: 1 }} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask Remy… (or dictate with the mic)" aria-label="Message Remy" />
+          <button className="btn" onClick={dictate} disabled={listening} aria-label="Dictate message">{listening ? '●' : '🎙'}</button>
           <button className="btn primary" onClick={send} disabled={busy}>{busy ? '…' : 'Send'}</button>
         </div>
       </section>

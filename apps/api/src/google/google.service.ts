@@ -56,10 +56,55 @@ export class GoogleService {
     return out;
   }
 
-  async sendGmail(userId: string, to: string, subject: string, body: string) {
+  async sendGmail(
+    userId: string,
+    to: string | string[],
+    subject: string,
+    body: string,
+    opts?: { cc?: string[]; bcc?: string[]; attachments?: { filename: string; mimeType: string; contentBase64: string }[] },
+  ) {
     const auth = await this.client(userId);
     const gmail = google.gmail({ version: 'v1', auth });
-    const raw = Buffer.from(`To: ${to}\r\nSubject: ${subject}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body}`)
+    const toList = Array.isArray(to) ? to : [to];
+    const cc = opts?.cc ?? [];
+    const bcc = opts?.bcc ?? [];
+    const attachments = opts?.attachments ?? [];
+    let mime: string;
+    if (attachments.length === 0) {
+      mime =
+        `To: ${toList.join(', ')}\r\n` +
+        (cc.length > 0 ? `Cc: ${cc.join(', ')}\r\n` : '') +
+        (bcc.length > 0 ? `Bcc: ${bcc.join(', ')}\r\n` : '') +
+        `Subject: ${subject}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body}`;
+    } else {
+      const boundary = `remy-${Date.now().toString(36)}`;
+      const parts = [
+        `To: ${toList.join(', ')}`,
+        ...(cc.length > 0 ? [`Cc: ${cc.join(', ')}`] : []),
+        ...(bcc.length > 0 ? [`Bcc: ${bcc.join(', ')}`] : []),
+        `Subject: ${subject}`,
+        'MIME-Version: 1.0',
+        `Content-Type: multipart/mixed; boundary="${boundary}"`,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        body,
+      ];
+      for (const a of attachments) {
+        parts.push(
+          `--${boundary}`,
+          `Content-Type: ${a.mimeType}; name="${a.filename}"`,
+          'Content-Transfer-Encoding: base64',
+          `Content-Disposition: attachment; filename="${a.filename}"`,
+          '',
+          a.contentBase64.replace(/\r?\n/g, ''),
+        );
+      }
+      parts.push(`--${boundary}--`, '');
+      mime = parts.join('\r\n');
+    }
+    const raw = Buffer.from(mime)
       .toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')

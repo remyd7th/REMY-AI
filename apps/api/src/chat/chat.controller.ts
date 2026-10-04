@@ -2,6 +2,7 @@ import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { LlmService } from './llm.service';
 import { ChatToolsService } from './chat-tools.service';
+import { parseEmailRequest } from './email-parse';
 
 const REMY_SYSTEM =
   'You are Remy, a calm, concise, professional work assistant for executive and virtual assistants. ' +
@@ -10,6 +11,9 @@ const REMY_SYSTEM =
 function intentOf(message: string): 'workload' | 'briefing' | 'followup' | 'chat' {
   const m = message.toLowerCase();
   if (/(follow.?up|draft|write|send).*(email|to |message)|email.*(draft|follow)/.test(m)) return 'followup';
+  if (/\bcc\b|\bbcc\b|carbon copy/.test(m) && /(send|email|copy)/.test(m)) return 'followup';
+  if (/(email|e-mail)\b/.test(m)) return 'followup';
+  if (/\btell\b.*\b(team|everyone|them|him|her|clients?)\b/.test(m)) return 'followup';
   if (/(organize|priorit|overdue|tomorrow|workload|tasks)/.test(m)) return 'workload';
   if (/(morning|briefing|today|attention|overview|what.*(need|today))/.test(m)) return 'briefing';
   return 'chat';
@@ -31,9 +35,8 @@ export class ChatController {
       case 'briefing':
         return { ...(await this.tools.briefing(userId, workspaceId)), via: 'tools' };
       case 'followup': {
-        const email = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.exec(message)?.[0];
-        const to = email ?? /to\s+([A-Z][a-z]+)/.exec(message)?.[1] ?? 'them';
-        return { ...(await this.tools.draftFollowUp(userId, workspaceId, to, message)), via: 'tools' };
+        const parsed = parseEmailRequest(message);
+        return { ...(await this.tools.draftEmail(userId, workspaceId, parsed)), via: 'tools' };
       }
       default: {
         const { text, via } = await this.llm.complete(REMY_SYSTEM, message);

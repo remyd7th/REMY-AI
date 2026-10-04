@@ -51,8 +51,9 @@ export function ActivityRow({ icon, tone, title, sub, time }: { icon: string; to
   );
 }
 
-export function ApprovalCard({ action, body, channel, status, createdAt, onApprove, onDeny, onEdit, onExecute }: {
-  action: string; body?: string; channel?: string; status: string; createdAt?: string;
+export function ApprovalCard({ action, body, channel, cc, bcc, subject, attachments, unresolved, status, createdAt, onApprove, onDeny, onEdit, onExecute }: {
+  action: string; body?: string; channel?: string; cc?: string; bcc?: string; subject?: string;
+  attachments?: string[]; unresolved?: string[]; status: string; createdAt?: string;
   onApprove?: () => void; onDeny?: () => void; onEdit?: () => void; onExecute?: () => void;
 }) {
   return (
@@ -64,9 +65,16 @@ export function ApprovalCard({ action, body, channel, status, createdAt, onAppro
           <div>
             <b>{action}</b>
             {channel && <div style={{ marginTop: 4 }}><span className="badge b-info">{channel}</span></div>}
+            {cc && <div style={{ marginTop: 4 }}><span className="badge b-info">{cc}</span></div>}
+            {bcc && <div style={{ marginTop: 4 }}><span className="badge b-info">{bcc}</span></div>}
+            {subject && <div style={{ marginTop: 4 }}><b>Subject:</b> {subject}</div>}
           </div>
         </div>
         {body && <p className="quote">“{body.slice(0, 220)}”</p>}
+        {attachments && attachments.length > 0 && <p className="caption">📎 {attachments.join(', ')}</p>}
+        {unresolved && unresolved.length > 0 && (
+          <p className="caption">⚠ Needs a real address: {unresolved.join(', ')} — press Edit to fill it in.</p>
+        )}
         <p className="caption">Created by Remy{createdAt ? ` · ${createdAt}` : ''}</p>
         <div className="row" style={{ marginTop: 6 }}>
           <span className={`badge ${status === 'pending' ? 'b-attn' : 'b-ok'}`}>{status}</span>
