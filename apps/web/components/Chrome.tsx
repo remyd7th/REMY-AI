@@ -17,6 +17,13 @@ function isActive(path: string, href: string) {
   return path === href || (href !== '/today' && path.startsWith(href));
 }
 
+const SECONDARY: [string, string, string][] = [
+  ['Inbox', '/emails', '✉'],
+  ['Docs', '/documents', '📄'],
+  ['Follow-ups', '/followups', '🔔'],
+  ['Permissions', '/permissions', '🛡'],
+];
+
 export function PillNav() {
   const path = usePathname();
   return (
@@ -35,6 +42,11 @@ export function Sidebar() {
   return (
     <>
       {LINKS.map(([label, href, icon]) => (
+        <a key={href} className={`sidelink${isActive(path, href) ? ' active' : ''}`} href={href} aria-current={isActive(path, href) ? 'page' : undefined}>
+          <span className="sic" aria-hidden>{icon}</span> {label}
+        </a>
+      ))}
+      {SECONDARY.map(([label, href, icon]) => (
         <a key={href} className={`sidelink${isActive(path, href) ? ' active' : ''}`} href={href} aria-current={isActive(path, href) ? 'page' : undefined}>
           <span className="sic" aria-hidden>{icon}</span> {label}
         </a>
