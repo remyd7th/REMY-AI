@@ -1,34 +1,55 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { API } from '../lib/api';
 
-const LINKS: [string, string, string][] = [
-  ['Today', '/today', '⌂'],
+const TOP: [string, string, string][] = [
+  ['Today', '/today', '☀'],
+  ['Workflow', '/workflows', '⚙'],
+];
+
+const SIDE: [string, string, string][] = [
   ['Chat', '/chat', '💬'],
-  ['Workflows', '/workflows', '⚙'],
-  ['Approvals', '/approvals', '☑'],
-  ['Tasks', '/tasks', '✓'],
   ['Calendar', '/calendar', '📅'],
+  ['Tasks', '/tasks', '✓'],
+  ['Approvals', '/approvals', '☑'],
+  ['Inbox', '/emails', '✉'],
+  ['Settings', '/settings', '⚙'],
+];
+
+const MORE: [string, string, string][] = [
+  ['Docs', '/documents', '📄'],
+  ['Follow-ups', '/followups', '🔔'],
   ['Activity', '/activity', '⚡'],
+  ['Permissions', '/permissions', '🛡'],
+];
+
+const SEARCH_INDEX: [string, string][] = [
+  ['Today dashboard', '/today'],
+  ['Chat with Remy', '/chat'],
+  ['Workflows', '/workflows'],
+  ['Approvals', '/approvals'],
+  ['Tasks', '/tasks'],
+  ['Calendar', '/calendar'],
+  ['Activity', '/activity'],
+  ['Inbox', '/emails'],
+  ['Docs', '/documents'],
+  ['Follow-ups', '/followups'],
+  ['Permissions', '/permissions'],
+  ['Settings', '/settings'],
+  ['Get started', '/get-started'],
+  ['Sign in', '/signin'],
 ];
 
 function isActive(path: string, href: string) {
   return path === href || (href !== '/today' && path.startsWith(href));
 }
 
-const SECONDARY: [string, string, string][] = [
-  ['Inbox', '/emails', '✉'],
-  ['Docs', '/documents', '📄'],
-  ['Follow-ups', '/followups', '🔔'],
-  ['Permissions', '/permissions', '🛡'],
-];
-
 export function PillNav() {
   const path = usePathname();
   return (
-    <nav className="pillnav" aria-label="Main">
-      {LINKS.map(([label, href, icon]) => (
+    <nav className="pillnav" aria-label="Primary">
+      {TOP.map(([label, href, icon]) => (
         <a key={href} href={href} className={isActive(path, href) ? 'active' : ''} aria-current={isActive(path, href) ? 'page' : undefined}>
           <span aria-hidden>{icon}</span> {label}
         </a>
@@ -39,24 +60,54 @@ export function PillNav() {
 
 export function Sidebar() {
   const path = usePathname();
+  const link = ([label, href, icon]: [string, string, string]) => (
+    <a key={href} className={`sidelink${isActive(path, href) ? ' active' : ''}`} href={href} aria-current={isActive(path, href) ? 'page' : undefined}>
+      <span className="sic" aria-hidden>{icon}</span> {label}
+    </a>
+  );
   return (
     <>
-      {LINKS.map(([label, href, icon]) => (
-        <a key={href} className={`sidelink${isActive(path, href) ? ' active' : ''}`} href={href} aria-current={isActive(path, href) ? 'page' : undefined}>
-          <span className="sic" aria-hidden>{icon}</span> {label}
-        </a>
-      ))}
-      {SECONDARY.map(([label, href, icon]) => (
-        <a key={href} className={`sidelink${isActive(path, href) ? ' active' : ''}`} href={href} aria-current={isActive(path, href) ? 'page' : undefined}>
-          <span className="sic" aria-hidden>{icon}</span> {label}
-        </a>
-      ))}
+      {SIDE.map(link)}
+      <div className="caption" style={{ margin: '14px 4px 6px', color: 'rgba(255,255,255,.65)' }}>More</div>
+      {MORE.map(link)}
       <div className="side-assistant">
         <div style={{ fontSize: 20 }} aria-hidden>✦</div>
         <b>Your AI Executive Assistant</b>
         <p className="muted small" style={{ margin: '4px 0 0' }}>Work smarter. Get more done.</p>
       </div>
     </>
+  );
+}
+
+export function SearchBox() {
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const hits = q.trim()
+    ? SEARCH_INDEX.filter(([label]) => label.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 6)
+    : [];
+
+  return (
+    <div className="searchbox" role="search">
+      <input
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && hits.length > 0) router.push(hits[0][1]);
+          if (e.key === 'Escape') setOpen(false);
+        }}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="Search anything…"
+        aria-label="Search pages"
+      />
+      {open && hits.length > 0 && (
+        <div className="search-hits" role="listbox">
+          {hits.map(([label, href]) => (
+            <a key={href} href={href} role="option" aria-selected="false">{label}</a>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

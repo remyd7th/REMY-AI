@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import './globals.css';
 import WorkspaceBar from '../components/WorkspaceBar';
-import { PillNav, Sidebar, SessionArea } from '../components/Chrome';
+import { PillNav, Sidebar, SessionArea, SearchBox } from '../components/Chrome';
 
 export const metadata = { title: 'Remy AI', description: 'Your intelligent AI work assistant' };
 
@@ -19,6 +19,7 @@ export default function Root({ children }: { children: ReactNode }) {
           <div className="cmdbar-in">
             <a className="brand" href="/today" aria-label="Remy AI home"><span className="brand-mark" aria-hidden>✦</span> REMY-AI</a>
             <PillNav />
+            <SearchBox />
             <div className="cmd-right"><SessionArea /></div>
           </div>
         </header>

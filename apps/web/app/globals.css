@@ -25,13 +25,23 @@ button { font-family: inherit; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--remy-ink); border: 2px solid var(--remy-ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; }
 
 /* ---- app shell: sidebar + main ---- */
-.shell { max-width: 1400px; margin: 0 auto; padding: 22px 24px 80px; display: grid; grid-template-columns: 168px 1fr; gap: 22px; align-items: start; }
-.sidebar { position: sticky; top: 18px; display: flex; flex-direction: column; gap: 2px; }
-.sidebar a.sidelink { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 12px; font-weight: 800; font-size: 14px; text-decoration: none; }
-.sidebar a.sidelink:hover { background: #fff; }
-.sidebar a.sidelink.active { background: var(--remy-primary-soft); border: 2px solid var(--remy-line); padding: 8px 10px; }
-.sidebar a.sidelink .sic { width: 30px; height: 30px; flex: none; border-radius: 9px; border: var(--remy-border); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; background: #fff; }
-.side-assistant { margin-top: 16px; border: var(--remy-border); border-radius: var(--remy-radius); background: #fff; padding: 14px; box-shadow: var(--remy-shadow-s); }
+.shell { max-width: 1400px; margin: 0 auto; padding: 22px 24px 80px; display: grid; grid-template-columns: 208px 1fr; gap: 22px; align-items: start; }
+.sidebar { position: sticky; top: 18px; display: flex; flex-direction: column; gap: 2px; background: #241547; border: var(--remy-border); border-radius: 18px; padding: 14px 10px; box-shadow: var(--remy-shadow); }
+.sidebar a.sidelink { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 12px; font-weight: 800; font-size: 14px; text-decoration: none; color: #fff; border: 2px solid transparent; }
+.sidebar a.sidelink:hover { background: rgba(255, 255, 255, 0.12); }
+.sidebar a.sidelink.active { background: var(--remy-primary); border-color: #fff; }
+.sidebar a.sidelink .sic { width: 30px; height: 30px; flex: none; border-radius: 9px; border: 2px solid rgba(255, 255, 255, 0.85); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(255, 255, 255, 0.1); }
+.side-assistant { margin: 14px 4px 2px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: var(--remy-radius); background: rgba(255, 255, 255, 0.08); padding: 14px; }
+.side-assistant b, .side-assistant p { color: #fff !important; }
+.sidebar .caption { color: rgba(255, 255, 255, 0.65) !important; }
+
+/* search */
+.searchbox { position: relative; margin-left: auto; }
+.searchbox input { border-radius: var(--remy-radius-pill); border: 2px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.14); color: #fff; padding: 8px 16px; font-size: 13.5px; width: 210px; }
+.searchbox input::placeholder { color: rgba(255, 255, 255, 0.75); }
+.search-hits { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: #fff; border: var(--remy-border); border-radius: 12px; box-shadow: var(--remy-shadow); z-index: 40; overflow: hidden; }
+.search-hits a { display: block; padding: 9px 14px; font-size: 14px; font-weight: 700; text-decoration: none; }
+.search-hits a:hover { background: var(--remy-sun-soft); }
 
 /* ---- today 2-col (content + right rail) ---- */
 .today-grid { display: grid; grid-template-columns: 1fr 330px; gap: 22px; align-items: start; }
@@ -175,10 +185,12 @@ input::placeholder, textarea::placeholder { color: var(--remy-faint); }
 }
 @media (max-width: 900px) {
   .shell { grid-template-columns: 1fr; }
-  .sidebar { position: static; flex-direction: row; flex-wrap: wrap; }
-  .sidebar a.sidelink { padding: 8px 10px; font-size: 13px; }
-  .side-assistant { display: none; }
+  .sidebar { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; align-items: center; padding: 10px; }
+  .sidebar a.sidelink { white-space: nowrap; padding: 8px 10px; font-size: 13px; }
+  .sidebar a.sidelink .sic { width: 26px; height: 26px; }
+  .sidebar .caption, .side-assistant { display: none; }
   .pillnav { display: none; }
+  .searchbox { display: none; }
   .grid3 { grid-template-columns: repeat(2, 1fr); }
   .chat-layout { grid-template-columns: 1fr; }
   .chat-history { position: static; }
