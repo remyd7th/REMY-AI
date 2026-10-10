@@ -2,11 +2,25 @@
 import { useEffect, useState } from 'react';
 import { API, storeUid } from '../../lib/api';
 import GoogleButton from '../../components/GoogleButton';
+import { InstallButton } from '../../lib/pwa';
 
 interface Session { user?: { id: string; name?: string; email?: string } }
 
 export default function SignInPage() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [next, setNext] = useState('/today');
+  const [autoGo, setAutoGo] = useState(false);
+
+  useEffect(() => {
+    try {
+      const n = new URLSearchParams(window.location.search).get('next');
+      if (n && n.startsWith('/') && !n.startsWith('//')) {
+        setNext(n);
+        setAutoGo(true);
+      }
+    } catch { /* ignore */ }
+    load();
+  }, []);
 
   async function load() {
     try {
@@ -18,7 +32,13 @@ export default function SignInPage() {
       setSession(null);
     }
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (session?.user && autoGo) {
+      try {
+        if (window.location.pathname === '/signin') window.location.href = next;
+      } catch { /* ignore */ }
+    }
+  }, [session, next, autoGo]);
 
   async function logout() {
     await fetch(`${API}/auth/sign-out`, {
@@ -33,19 +53,12 @@ export default function SignInPage() {
 
   if (session?.user) {
     return (
-      <div className="grid2">
-        <div className="hero">
-          <b style={{ fontSize: 26 }}>Welcome back.</b>
-          <p style={{ fontSize: 15, maxWidth: 420 }}>Remy is your intelligent AI work assistant.</p>
-          <p style={{ fontSize: 14 }}>It helps you <b>organize</b>, <b>assist</b>, <b>suggest</b> and <b>execute</b> — while you stay in control.</p>
-        </div>
-        <div className="card">
-          <b>Signed in as {session.user.name ?? session.user.email}</b>
-          <p className="muted">{session.user.email}</p>
-          <div className="row">
-            <a href="/today"><button className="btn primary">Open dashboard</button></a>
-            <button className="btn" onClick={logout}>Sign out</button>
-          </div>
+      <div className="card" style={{ maxWidth: 560, margin: '48px auto' }}>
+        <b>Signed in as {session.user.name ?? session.user.email}</b>
+        <p className="muted">{session.user.email}</p>
+        <div className="row">
+          <a href={next}><button className="btn primary">Continue →</button></a>
+          <button className="btn" onClick={logout}>Sign out</button>
         </div>
       </div>
     );
@@ -63,8 +76,11 @@ export default function SignInPage() {
       <div className="card">
         <b>Sign in</b>
         <p className="muted">Existing Remy account. One click with Google — no passwords.</p>
-        <GoogleButton />
+        <GoogleButton callbackPath={`/signin?next=${encodeURIComponent(next)}`} />
         <p className="muted">New to Remy? <a href="/get-started"><b>Get started →</b></a></p>
+        <div className="install-row">
+          <span className="muted small">Prefer the app?</span> <InstallButton />
+        </div>
       </div>
     </div>
   );

@@ -8,12 +8,15 @@ const REMY_SYSTEM =
   'You are Remy, a calm, concise, professional work assistant for executive and virtual assistants. ' +
   'Answer briefly and action-first. Never claim to have sent, scheduled, or shared anything.';
 
-function intentOf(message: string): 'workload' | 'briefing' | 'followup' | 'chat' {
+function intentOf(message: string): 'workload' | 'briefing' | 'followup' | 'task' | 'workflow' | 'chat' {
   const m = message.toLowerCase();
   if (/(follow.?up|draft|write|send).*(email|to |message)|email.*(draft|follow)/.test(m)) return 'followup';
   if (/\bcc\b|\bbcc\b|carbon copy/.test(m) && /(send|email|copy)/.test(m)) return 'followup';
   if (/(email|e-mail)\b/.test(m)) return 'followup';
   if (/\btell\b.*\b(team|everyone|them|him|her|clients?)\b/.test(m)) return 'followup';
+  const remind = /remind me to (.+)/i.exec(message)?.[1] ?? /create (?:a )?task (?:to )?(.+)/i.exec(message)?.[1];
+  if (remind) return 'task';
+  if (/(every|each|whenever|each time|every time|automate|recurring)/.test(m)) return 'workflow';
   if (/(organize|priorit|overdue|tomorrow|workload|tasks)/.test(m)) return 'workload';
   if (/(morning|briefing|today|attention|overview|what.*(need|today))/.test(m)) return 'briefing';
   return 'chat';
@@ -37,6 +40,14 @@ export class ChatController {
       case 'followup': {
         const parsed = parseEmailRequest(message);
         return { ...(await this.tools.draftEmail(userId, workspaceId, parsed)), via: 'tools' };
+      }
+      case 'task': {
+        const what = (/remind me to (.+)/i.exec(message)?.[1] ?? /create (?:a )?task (?:to )?(.+)/i.exec(message)?.[1] ?? message).trim();
+        const dueInDays = /\btomorrow\b/i.test(message) ? 1 : /\bin (\d+) days?\b/i.exec(message)?.[1] ? Number(/\bin (\d+) days?\b/i.exec(message)![1]) : undefined;
+        return { ...(await this.tools.createTask(userId, workspaceId, what.replace(/\btomorrow\b/i, '').trim() || what, dueInDays)), via: 'tools' };
+      }
+      case 'workflow': {
+        return { ...(await this.tools.suggestWorkflow(userId, workspaceId, message)), via: 'tools' };
       }
       default: {
         const { text, via } = await this.llm.complete(REMY_SYSTEM, message);

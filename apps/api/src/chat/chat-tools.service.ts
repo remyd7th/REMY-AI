@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { formatList, isEmail, type ParsedEmail } from './email-parse';
+import { generatePlan } from '../workflows/workflow-plan';
 
 export interface SuggestedAction {
   label: string;
@@ -29,10 +30,21 @@ function composeBody(greetName: string, content: string, tone: string): string {
 export class ChatToolsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** "In Sarah — CEO (executive)" — empty when the workspace is unknown. */
+  private async workspaceLabel(userId: string, workspaceId: string): Promise<string> {
+    try {
+      const ws = await this.prisma.workspace.findFirst({ where: { id: workspaceId, userId } });
+      return ws ? `In ${ws.name} (${ws.type})` : '';
+    } catch {
+      return '';
+    }
+  }
+
   async workload(userId: string, workspaceId: string) {
     const scope = { workspaceId, userId };
     const now = new Date();
-    const [open, overdue, blocking] = await Promise.all([
+    const [label, open, overdue, blocking] = await Promise.all([
+      this.workspaceLabel(userId, workspaceId),
       this.prisma.task.count({ where: { ...scope, status: 'open' } }),
       this.prisma.task.count({ where: { ...scope, status: 'open', dueAt: { lt: now } } }),
       this.prisma.task.findMany({
@@ -43,7 +55,7 @@ export class ChatToolsService {
     ]);
     const top = blocking.map((t) => `• ${t.title}${t.dueAt ? ` (due ${t.dueAt.toISOString().slice(0, 10)})` : ''}`);
     return {
-      reply: `You have ${open} open tasks${overdue > 0 ? `, ${overdue} overdue` : ''}.\n${top.join('\n')}${
+      reply: `${label ? `${label}: ` : ''}You have ${open} open tasks${overdue > 0 ? `, ${overdue} overdue` : ''}.\n${top.join('\n')}${
         overdue > 0 ? '\nWant me to draft a reprioritized plan for approval?' : ''
       }`,
       suggestedActions: [
@@ -60,7 +72,8 @@ export class ChatToolsService {
     const now = new Date();
     const eod = new Date(now);
     eod.setHours(23, 59, 59, 999);
-    const [tasks, overdue, meetings, emails, followups] = await Promise.all([
+    const [label, tasks, overdue, meetings, emails, followups] = await Promise.all([
+      this.workspaceLabel(userId, workspaceId),
       this.prisma.task.count({ where: { ...scope, status: 'open' } }),
       this.prisma.task.count({ where: { ...scope, status: 'open', dueAt: { lt: now } } }),
       this.prisma.event.count({ where: { ...scope, startsAt: { gte: now, lte: eod } } }),
@@ -68,7 +81,7 @@ export class ChatToolsService {
       this.prisma.followup.count({ where: { ...scope, status: { in: ['open', 'nudged'] } } }),
     ]);
     return {
-      reply: `Good morning. Here's what needs your attention: ${tasks} open tasks (${overdue} overdue), ${meetings} meetings today, ${emails} emails needing replies, ${followups} open follow-ups.`,
+      reply: `${label ? `${label}: ` : ''}Here's what needs your attention: ${tasks} open tasks (${overdue} overdue), ${meetings} meetings today, ${emails} emails needing replies, ${followups} open follow-ups.`,
       suggestedActions: [
         { label: 'Open Today', method: 'GET', endpoint: `/api/today?workspaceId=${workspaceId}&userId=${userId}` },
         { label: 'Meetings needing prep', method: 'GET', endpoint: `/api/events/needing-prep?workspaceId=${workspaceId}&userId=${userId}` },
@@ -99,6 +112,41 @@ export class ChatToolsService {
         { label: 'Review approvals', method: 'GET', endpoint: `/api/approvals?workspaceId=${workspaceId}&userId=${userId}` },
       ] as SuggestedAction[],
       pendingApproval: approval,
+    };
+  }
+
+  // One-time asks ("remind me to call John tomorrow") become tasks, never
+  // workflows. Returns the created task info for the reply.
+  async createTask(userId: string, workspaceId: string, title: string, dueInDays?: number) {
+    const task = await this.prisma.task.create({
+      data: {
+        userId, workspaceId, title: title.slice(0, 200), priority: 'normal', source: 'chat',
+        ...(dueInDays !== undefined ? { dueAt: new Date(Date.now() + dueInDays * 86_400_000) } : {}),
+      },
+    });
+    return {
+      reply: `Done — I created the task "${task.title}"${dueInDays !== undefined ? ` (due in ${dueInDays} day${dueInDays === 1 ? '' : 's'})` : ''}. Find it under Tasks.`,
+      suggestedActions: [
+        { label: 'Show all tasks', method: 'GET', endpoint: `/api/tasks?workspaceId=${workspaceId}&userId=${userId}` },
+      ] as SuggestedAction[],
+    };
+  }
+
+  // Repeatable-process asks ("every morning…", "whenever…") become a
+  // reviewable workflow draft — one click to activate, never auto-enabled.
+  async suggestWorkflow(userId: string, workspaceId: string, message: string) {
+    const plan = generatePlan(message);
+    const stepLines = plan.steps.map((s, i) => `${i + 1}. ${s.label}`).join('\n');
+    return {
+      reply: `I can automate that. Here's the workflow I drafted — review it on the Workflows page, or activate it right away:\n\nGoal: ${plan.goal}\nTrigger: ${plan.trigger}\nSteps:\n${stepLines}`,
+      suggestedActions: [
+        {
+          label: 'Activate workflow', method: 'POST', endpoint: '/api/workflows',
+          body: { userId, workspaceId, name: plan.goal, description: '', trigger: plan.trigger, steps: plan.steps, status: 'active' },
+        },
+        { label: 'Open workflows', method: 'GET', endpoint: `/api/workflows?workspaceId=${workspaceId}&userId=${userId}` },
+      ] as SuggestedAction[],
+      pendingApproval: null,
     };
   }
 

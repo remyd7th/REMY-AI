@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 import { PageHead, ActivityRow, Empty } from '../../components/ui';
 
 interface Act { at: string; icon: string; tone: string; title: string; sub?: string }
@@ -18,12 +19,15 @@ function ago(iso: string): string {
 export default function ActivityPage() {
   const [items, setItems] = useState<Act[]>([]);
 
-  useEffect(() => {
+  function load() {
     fetch(`${API}/activity?workspaceId=${currentWorkspace()}&userId=${currentUserId()}`, { credentials: 'include' })
       .then((r) => r.json())
       .then(setItems)
       .catch(() => {});
-  }, []);
+  }
+
+  useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   return (
     <>

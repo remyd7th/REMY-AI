@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 
 interface Email { id: string; from: string; subject: string; snippet: string | null; importance: string; needsReply: boolean; status: string }
 
@@ -25,6 +26,8 @@ export default function EmailsPage() {
     setItems(await fetch(`${API}/emails?${p}`, { credentials: 'include' }).then((r) => r.json()));
   }
   useEffect(() => { load(); }, []);
+  // No deps: always call the latest load so active filters are respected.
+  useEffect(() => onWorkspaceChange(load));
 
   async function ingest() {
     if (!from.trim() || !subject.trim()) return;

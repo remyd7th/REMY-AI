@@ -1,36 +1,64 @@
-/* Remy AI — Design tokens (unified system).
-   Flat solids only. No gradients. 2px ink borders. Hard offset shadows. */
+/* Remy AI — Design tokens.
+   Clean, professional productivity theme. Flat solids only, no gradients.
+   Light mode is the default; dark mode overrides via [data-theme="dark"]. */
 
-:root {
-  /* ---- brand ---- */
-  --remy-primary: #6D28D9;
-  --remy-primary-deep: #4C1D95;
-  --remy-primary-soft: #EDE9FE;
-  --remy-pink: #EC4899;
-  --remy-pink-soft: #FCE7F3;
-  --remy-cyan: #06B6D4;
-  --remy-cyan-soft: #CFFAFE;
-  --remy-lime: #A3E635;
-  --remy-lime-soft: #ECFCCB;
-  --remy-sun: #FFC800;
-  --remy-sun-soft: #FEF3C7;
-  --remy-red: #FF3B30;
-  --remy-red-soft: #FEE2E2;
+:root,
+[data-theme="light"] {
+  /* ---- surfaces ---- */
+  --remy-bg: #ffffff;
+  --remy-surface: #ffffff;
+  --remy-rail: #ffffff;
+  --remy-hover: #f9fafb;
+  --remy-active: #f3f4f6;
+  --remy-header: #ffffff;
+  --remy-sidebar: #ffffff;
+  --remy-input: #ffffff;
 
-  /* ---- neutrals ---- */
-  --remy-ink: #0A0A0F;
-  --remy-muted: #52525B;
-  --remy-faint: #A1A1AA;
-  --remy-line: #0A0A0F;
-  --remy-bg: #F7F5FF;
-  --remy-surface: #FFFFFF;
-  --remy-rail: #FFFFFF;
+  /* ---- text ---- */
+  --remy-ink: #1f2937;
+  --remy-heading: #111827;
+  --remy-muted: #6b7280;
+  --remy-faint: #9ca3af;
+
+  /* ---- lines ---- */
+  --remy-line: #e5e7eb;
+  --remy-border: 1px solid #e5e7eb;
+  --remy-border-strong: 1px solid #d1d5db;
+
+  /* ---- restrained accent (links, focus, key actions) ---- */
+  --remy-primary: #374151;
+  --remy-primary-deep: #111827;
+  --remy-primary-soft: #f3f4f6;
+  --remy-accent: #4f46e5;
+  --remy-accent-soft: #eef2ff;
+
+  /* ---- legacy color aliases (kept so existing components still compile) ---- */
+  --remy-pink: #db2777;
+  --remy-pink-soft: #fce7f3;
+  --remy-cyan: #0e7490;
+  --remy-cyan-soft: #ecfeff;
+  --remy-lime: #4d7c0f;
+  --remy-lime-soft: #f7fee7;
+  --remy-sun: #b45309;
+  --remy-sun-soft: #fef3c7;
+  --remy-red: #b91c1c;
+  --remy-red-soft: #fef2f2;
+
+  /* ---- status (restrained) ---- */
+  --remy-ok: #15803d;
+  --remy-ok-bg: #f0fdf4;
+  --remy-warn: #b45309;
+  --remy-warn-bg: #fffbeb;
+  --remy-danger: #b91c1c;
+  --remy-danger-bg: #fef2f2;
+  --remy-info: #1d4ed8;
+  --remy-info-bg: #eff6ff;
 
   /* ---- type scale ---- */
-  --remy-text-display: 34px;
-  --remy-text-page: 24px;
-  --remy-text-section: 19px;
-  --remy-text-card: 16px;
+  --remy-text-display: 30px;
+  --remy-text-page: 22px;
+  --remy-text-section: 17px;
+  --remy-text-card: 15px;
   --remy-text-body: 14.5px;
   --remy-text-small: 13px;
   --remy-text-caption: 12px;
@@ -45,15 +73,68 @@
   --remy-s8: 32px;
 
   /* ---- borders / radius ---- */
-  --remy-border: 2px solid #0A0A0F;
-  --remy-radius: 14px;
-  --remy-radius-s: 9px;
+  --remy-radius: 12px;
+  --remy-radius-s: 8px;
   --remy-radius-pill: 999px;
 
-  /* ---- hard offset shadows ---- */
-  --remy-shadow-s: 3px 3px 0 #0A0A0F;
-  --remy-shadow: 4px 4px 0 #0A0A0F;
-  --remy-shadow-lg: 6px 6px 0 #0A0A0F;
+  /* ---- subtle shadows ---- */
+  --remy-shadow-s: 0 1px 2px rgba(17, 24, 39, 0.05);
+  --remy-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+  --remy-shadow-lg: 0 4px 12px rgba(17, 24, 39, 0.08);
 
-  --remy-font: Nunito, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --remy-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --remy-bg: #111827;
+  --remy-surface: #1f2937;
+  --remy-rail: #1f2937;
+  --remy-hover: #273244;
+  --remy-active: #374151;
+  --remy-header: #1f2937;
+  --remy-sidebar: #1f2937;
+  --remy-input: #273244;
+
+  --remy-ink: #f3f4f6;
+  --remy-heading: #f9fafb;
+  --remy-muted: #9ca3af;
+  --remy-faint: #6b7280;
+
+  --remy-line: #374151;
+  --remy-border: 1px solid #374151;
+  --remy-border-strong: 1px solid #4b5563;
+
+  --remy-primary: #e5e7eb;
+  --remy-primary-deep: #f9fafb;
+  --remy-primary-soft: #374151;
+  --remy-accent: #a5b4fc;
+  --remy-accent-soft: #312e81;
+
+  --remy-pink: #f9a8d4;
+  --remy-pink-soft: #3b1d2e;
+  --remy-cyan: #67e8f9;
+  --remy-cyan-soft: #164e63;
+  --remy-lime: #bef264;
+  --remy-lime-soft: #1a2e05;
+  --remy-sun: #fcd34d;
+  --remy-sun-soft: #3f2f04;
+  --remy-red: #fca5a5;
+  --remy-red-soft: #450a0a;
+
+  --remy-ok: #86efac;
+  --remy-ok-bg: #052e16;
+  --remy-warn: #fcd34d;
+  --remy-warn-bg: #3f2f04;
+  --remy-danger: #fca5a5;
+  --remy-danger-bg: #450a0a;
+  --remy-info: #93c5fd;
+  --remy-info-bg: #172554;
+
+  --remy-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --remy-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --remy-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
 }

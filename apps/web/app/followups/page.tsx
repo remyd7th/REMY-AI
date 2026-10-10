@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 
 interface Fu { id: string; kind: string; refId: string; status: string; dueAt: string | null }
 
@@ -16,6 +17,7 @@ export default function FollowupsPage() {
     setItems(await res.json());
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   async function scan() {
     const q = new URLSearchParams(Q());

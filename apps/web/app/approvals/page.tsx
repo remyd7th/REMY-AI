@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 import { PageHead, Tabs, ApprovalCard, Empty } from '../../components/ui';
+import { emitApprovalsChanged } from '../../lib/notifications';
 
 interface Approval {
   id: string; action: string; status: string;
@@ -47,10 +49,12 @@ export default function ApprovalsPage() {
     setItems(await fetch(`${API}/approvals?${Q()}`, { credentials: 'include' }).then((r) => r.json()));
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   async function decide(id: string, how: 'approve' | 'deny') {
     await fetch(`${API}/approvals/${id}/${how}`, { ...auth, method: 'POST' });
     load();
+    emitApprovalsChanged();
   }
 
   async function saveEdit(a: Approval) {
@@ -66,6 +70,7 @@ export default function ApprovalsPage() {
       } }) });
     setEditing(null);
     load();
+    emitApprovalsChanged();
   }
 
   async function execute(a: Approval) {
@@ -81,6 +86,7 @@ export default function ApprovalsPage() {
     const delivered = (json as { delivered?: unknown })?.delivered;
     setNotice(`Sent — ${JSON.stringify(delivered)}`);
     load();
+    emitApprovalsChanged();
   }
 
   const counts = (s: string) => items.filter((a) => a.status === (s === 'rejected' ? 'denied' : s)).length;

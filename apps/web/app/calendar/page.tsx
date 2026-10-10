@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 
 interface Ev { id: string; title: string; startsAt: string; endsAt: string }
 
@@ -25,6 +26,7 @@ export default function CalendarPage() {
     setPrep(p);
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   async function create() {
     setMsg('');

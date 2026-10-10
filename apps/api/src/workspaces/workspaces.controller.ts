@@ -14,12 +14,13 @@ export class WorkspacesController {
   }
 
   @Post()
-  create(@Body() body: { userId: string; name: string; type?: string }) {
+  create(@Body() body: { userId: string; name: string; type?: string; prefs?: Record<string, unknown> }) {
     return this.prisma.workspace.create({
       data: {
         userId: body.userId,
         name: body.name,
         type: (body.type as 'personal' | 'executive' | 'client' | 'team') ?? 'personal',
+        prefs: (body.prefs ?? {}) as never,
       },
     });
   }

@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API, uid } from '../../lib/api';
-import { currentWorkspace } from '../../components/WorkspaceBar';
 
 interface Rule { action: string; level: string; scope: string }
 
@@ -9,7 +8,6 @@ const ACTIONS = ['sendEmail', 'schedule', 'shareDoc', 'payment'];
 
 export default function PermissionsPage() {
   const [rules, setRules] = useState<Rule[]>([]);
-  const ws = currentWorkspace();
 
   async function load() {
     const res = await fetch(`${API}/permissions?userId=${uid()}`, { credentials: 'include' });
@@ -38,7 +36,6 @@ export default function PermissionsPage() {
           ))}
         </div>
       ))}
-      <p className="muted">Workspace: {ws} (global rules apply everywhere; per-workspace scoping next)</p>
       <a href="/approvals"><button className="btn primary">Review approvals</button></a>
     </div>
   );

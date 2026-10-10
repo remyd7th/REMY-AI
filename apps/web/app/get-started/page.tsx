@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API, storeUid } from '../../lib/api';
 import GoogleButton from '../../components/GoogleButton';
+import { InstallButton } from '../../lib/pwa';
 
 interface Session { user?: { id: string; name?: string; email?: string } }
 
@@ -15,6 +16,14 @@ export default function GetStartedPage() {
   const [wsName, setWsName] = useState('');
   const [wsType, setWsType] = useState('personal');
   const [done, setDone] = useState('');
+  const [next, setNext] = useState('/today');
+
+  useEffect(() => {
+    try {
+      const n = new URLSearchParams(window.location.search).get('next');
+      if (n && n.startsWith('/') && !n.startsWith('//')) setNext(n);
+    } catch { /* ignore */ }
+  }, []);
 
   async function load() {
     try {
@@ -38,7 +47,7 @@ export default function GetStartedPage() {
       body: JSON.stringify({ userId: uid, key: 'meeting_time', value: meetingTime }) });
     await fetch(`${API}/memories`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: uid, key: 'email_tone', value: emailTone }) });
-    let target = '/today';
+    let target = next;
     if (wsName.trim()) {
       const w = await fetch(`${API}/workspaces`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid, name: wsName, type: wsType }) }).then((r) => r.json());
@@ -66,8 +75,11 @@ export default function GetStartedPage() {
           <>
             <b>1 · Create account</b>
             <p className="muted">One click with Google — connects calendar + Gmail and creates your profile.</p>
-            <GoogleButton />
+            <GoogleButton callbackPath={`/get-started?next=${encodeURIComponent(next)}`} />
             <p className="muted">Already have an account? <a href="/signin"><b>Sign in →</b></a></p>
+            <div className="install-row">
+              <span className="muted small">Prefer the app?</span> <InstallButton />
+            </div>
           </>
         )}
         {step === 1 && (

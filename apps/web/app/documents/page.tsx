@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 
 interface Doc { id: string; title: string; type: string; summary: string | null; extracted: { keyPoints?: string[] } | null }
 
@@ -20,6 +21,7 @@ export default function DocsPage() {
     setDocs(await fetch(`${API}/documents?${Q()}`, { credentials: 'include' }).then((r) => r.json()));
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   async function fromNotes() {
     if (!nTitle.trim() || !nNotes.trim()) return;

@@ -58,7 +58,7 @@ export function ApprovalCard({ action, body, channel, cc, bcc, subject, attachme
 }) {
   return (
     <div className="approval-band">
-      <div className="approval-band-head"><span aria-hidden>⚡</span> Action needs your approval</div>
+      <div className="approval-band-head">Action needs your approval</div>
       <div className="approval-band-body">
         <div className="row">
           <span className="channel-ic" aria-hidden>✉</span>
@@ -71,9 +71,9 @@ export function ApprovalCard({ action, body, channel, cc, bcc, subject, attachme
           </div>
         </div>
         {body && <p className="quote">“{body.slice(0, 220)}”</p>}
-        {attachments && attachments.length > 0 && <p className="caption">📎 {attachments.join(', ')}</p>}
+        {attachments && attachments.length > 0 && <p className="caption">Attachments: {attachments.join(', ')}</p>}
         {unresolved && unresolved.length > 0 && (
-          <p className="caption">⚠ Needs a real address: {unresolved.join(', ')} — press Edit to fill it in.</p>
+          <p className="caption">Needs a real address: {unresolved.join(', ')} — press Edit to fill it in.</p>
         )}
         <p className="caption">Created by Remy{createdAt ? ` · ${createdAt}` : ''}</p>
         <div className="row" style={{ marginTop: 6 }}>

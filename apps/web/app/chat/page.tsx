@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { API } from '../../lib/api';
+import { API, apif } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { WS_EVENT } from '../../lib/workspace';
+import { ACTIVE_CONVO_KEY, emitApprovalsChanged, emitChatDone, useNotificationsOptional } from '../../lib/notifications';
 
 interface Action { label: string; method: string; endpoint: string; body?: unknown }
 interface Msg { from: 'me' | 'remy'; text: string; actions?: Action[]; via?: string }
@@ -37,6 +39,25 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [wsName, setWsName] = useState('');
+  const notify = useNotificationsOptional();
+
+  async function loadWsName() {
+    try {
+      const ws = await apif<{ id: string; name: string; type: string }[]>(
+        `/workspaces?workspaceId=${currentWorkspace()}&userId=${currentUserId()}`,
+      );
+      const active = ws.find((w) => w.id === currentWorkspace());
+      setWsName(active ? `${active.name} (${active.type})` : '');
+    } catch { /* offline — chat still sends with the raw id */ }
+  }
+
+  useEffect(() => {
+    loadWsName();
+    const h = () => loadWsName();
+    window.addEventListener(WS_EVENT, h);
+    return () => window.removeEventListener(WS_EVENT, h);
+  }, []);
 
   // Voice input (Web Speech API): dictation lands in the same box, so voice
   // instructions flow through the identical draft → review → approve → send path.
@@ -59,7 +80,23 @@ export default function ChatPage() {
     rec.start();
   }
 
-  useEffect(() => { setConvos(loadConvos()); }, []);
+  useEffect(() => {
+    const stored = loadConvos();
+    setConvos(stored);
+    // Deep link from toast notifications: /chat?convo=<id>
+    try {
+      const id = new URLSearchParams(window.location.search).get('convo');
+      if (id && stored.some((c) => c.id === id)) {
+        setCur(id);
+      }
+      if (id) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('convo');
+        window.history.replaceState(null, '', url.toString());
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     try {
       window.localStorage.setItem(KEY, JSON.stringify(convos.slice(0, 20)));
@@ -68,6 +105,28 @@ export default function ChatPage() {
 
   const convo = convos.find((c) => c.id === cur);
   const msgs = convo?.msgs ?? [];
+
+  // Track which conversation is on screen so the notification hub can tell
+  // "user already sees this response" apart from "response arrived in background".
+  useEffect(() => {
+    try {
+      if (cur) window.localStorage.setItem(ACTIVE_CONVO_KEY, cur);
+    } catch { /* private mode */ }
+    if (cur) notify?.markConvoRead(cur);
+    return () => {
+      try {
+        if (window.localStorage.getItem(ACTIVE_CONVO_KEY) === cur) {
+          window.localStorage.removeItem(ACTIVE_CONVO_KEY);
+        }
+      } catch { /* ignore */ }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur]);
+
+  function selectConvo(id: string) {
+    setCur(id);
+    notify?.markConvoRead(id);
+  }
 
   function persist(id: string, updater: (m: Msg[]) => Msg[]) {
     setConvos((cs) => cs.map((c) => (c.id === id ? { ...c, msgs: updater(c.msgs) } : c)));
@@ -83,6 +142,7 @@ export default function ChatPage() {
     const text = input.trim();
     if (!text || busy) return;
     setInput('');
+    const msgId = `m-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     let id = cur;
     if (!id) {
       id = `c-${Date.now()}`;
@@ -142,6 +202,26 @@ export default function ChatPage() {
         mm[mm.length - 1] = { ...mm[mm.length - 1], text: reply, actions, via };
         return { ...c, msgs: mm };
       }));
+      const ok = reply.trim().length > 0;
+      if (ok) {
+        // Merge into localStorage directly so the response survives even if the
+        // user navigated away mid-stream (component unmounted before completion).
+        try {
+          const stored = JSON.parse(window.localStorage.getItem(KEY) ?? '[]') as Convo[];
+          const idx = stored.findIndex((c) => c.id === cid);
+          if (idx >= 0) {
+            const mm = [...stored[idx].msgs];
+            if (mm.length > 0 && mm[mm.length - 1].from === 'remy') {
+              mm[mm.length - 1] = { ...mm[mm.length - 1], text: reply, actions, via };
+            }
+            stored[idx] = { ...stored[idx], msgs: mm };
+            window.localStorage.setItem(KEY, JSON.stringify(stored.slice(0, 20)));
+          }
+        } catch { /* private mode */ }
+        emitChatDone(cid, reply, msgId);
+        // Chat responses can create approval requests server-side.
+        emitApprovalsChanged();
+      }
     } catch (e) {
       persist(cid, (m) => [...m, { from: 'remy', text: `Couldn't reach Remy: ${String(e)}` }]);
     }
@@ -160,17 +240,25 @@ export default function ChatPage() {
         <button className="btn primary small" onClick={start}>+ New chat</button>
         <div className="hist-list">
           {convos.map((c) => (
-            <button key={c.id} className={c.id === cur ? 'active' : ''} onClick={() => setCur(c.id)}>{c.title}</button>
+            <button key={c.id} className={c.id === cur ? 'active' : ''} onClick={() => selectConvo(c.id)}>
+              {c.title}
+              {(notify?.chatUnreadByConvo[c.id] ?? 0) > 0 && (
+                <span className="side-badge side-badge-chat" aria-label={`${notify?.chatUnreadByConvo[c.id]} unread`}>
+                  {(notify?.chatUnreadByConvo[c.id] ?? 0) > 99 ? '99+' : notify?.chatUnreadByConvo[c.id]}
+                </span>
+              )}
+            </button>
           ))}
         </div>
         {convos.length === 0 && <p className="muted small">No conversations yet.</p>}
       </aside>
       <section className="card" aria-label="Remy conversation" aria-live="polite">
         <b>Remy AI conversation</b>
+        {wsName && <div className="muted small" style={{ marginTop: 2 }}>Remy is working in: {wsName}</div>}
         <div style={{ margin: '12px 0' }}>
           {msgs.map((m, i) => (
             <div key={i}>
-              <div className={`bubble ${m.from}`}>{m.text}{m.via && <div className="muted" style={{ fontSize: 11 }}>via {m.via}</div>}</div>
+              <div className={`bubble ${m.from}`}>{m.text}{m.via === 'stub' && <div className="muted" style={{ fontSize: 11 }}>offline mode</div>}</div>
               <div className="row">
                 {m.actions?.map((a, j) => <button key={j} className="chip" onClick={() => act(a)}>{a.label}</button>)}
               </div>

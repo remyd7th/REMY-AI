@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { qs, apif } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
+import { onWorkspaceChange } from '../../lib/workspace';
 
 interface Task { id: string; title: string; status: string; priority: string; dueAt: string | null }
 
@@ -15,6 +16,7 @@ export default function TasksPage() {
     setTasks(await apif<Task[]>(`/tasks?${Q()}`));
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => onWorkspaceChange(load), []);
 
   async function create() {
     if (!title.trim()) return;

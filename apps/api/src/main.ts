@@ -19,7 +19,9 @@ async function bootstrap() {
   const webUrl = norm(process.env.WEB_URL ?? 'http://localhost:3000');
   const apiUrl = norm(process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`);
   app.enableCors({
-    origin: [webUrl, apiUrl],
+    // Local review servers: always allow both common web ports alongside
+    // the env-configured URLs so `next dev -p 3100` works with credentials.
+    origin: [webUrl, apiUrl, 'http://localhost:3000', 'http://localhost:3100'],
     credentials: true,
   });
   await app.listen(port);
