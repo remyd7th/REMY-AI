@@ -9,7 +9,7 @@ import { InstallButton } from '../lib/pwa';
 const FULL_CHROME = ['/today', '/workflows', '/chat', '/tasks', '/calendar', '/approvals', '/emails', '/followups', '/documents', '/activity', '/integrations', '/settings', '/permissions', '/workspaces'];
 
 function useChrome(path: string): boolean {
-  if (path === '/') return true;
+  if (path === '/') return false;
   return FULL_CHROME.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
@@ -26,7 +26,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   }, []);
 
   if (!chrome) {
-    return <main id="main">{children}</main>;
+    return <div id="main">{children}</div>;
   }
 
   return (
