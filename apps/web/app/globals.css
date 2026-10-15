@@ -1026,3 +1026,20 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--remy-hea
 .today-play .rail .card { border-top: 3px solid #FDBA74; }
 [data-theme="dark"] .stat-peach, [data-theme="dark"] .stat-lav, [data-theme="dark"] .stat-mint, [data-theme="dark"] .stat-sky, [data-theme="dark"] .stat-rose { background: var(--remy-surface); }
 [data-theme="dark"] .play-ask { background: var(--remy-surface); border-color: var(--remy-line); }
+
+/* ---- Live calendar ---- */
+.cal-live { border-top: 3px solid #A5B4FC; }
+.cal-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22C55E; margin-right: 4px; animation: cal-blink 1.5s ease-in-out infinite; }
+@keyframes cal-blink { 50% { opacity: .35; } }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 4px; }
+.cal-dow { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--remy-faint); text-align: center; padding: 4px 0; }
+.cal-day { min-height: 68px; border: var(--remy-border); border-radius: 10px; background: var(--remy-surface); padding: 6px; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 3px; color: var(--remy-ink); }
+.cal-day:hover { background: var(--remy-hover); }
+.cal-blank { visibility: hidden; }
+.cal-num { font-weight: 800; font-size: 13px; color: var(--remy-heading); width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+.cal-today .cal-num { background: var(--remy-heading); color: var(--remy-bg); }
+.cal-sel { outline: 2px solid var(--remy-accent); outline-offset: 0; }
+.cal-has { border-color: var(--remy-accent); }
+.cal-ev { display: block; font-size: 10.5px; font-weight: 600; background: var(--remy-accent-soft); color: var(--remy-accent); border-radius: 6px; padding: 1px 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-more { font-size: 10.5px; color: var(--remy-muted); }
+@media (max-width: 640px) { .cal-day { min-height: 48px; } .cal-ev { display: none; } .cal-has .cal-num { text-decoration: underline; } }
