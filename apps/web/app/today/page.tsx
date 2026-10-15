@@ -196,7 +196,7 @@ export default function TodayPage() {
   const featured = appr[0] ?? null;
 
   return (
-    <div>
+    <div className="today-play">
       <div className="tabs" aria-label="Hero preview">
         <button aria-selected={hero === 't1'} onClick={() => setHero('t1')}>T1 Quiet</button>
         <button aria-selected={hero === 't2'} onClick={() => setHero('t2')}>T2 Summary card</button>
@@ -219,24 +219,31 @@ export default function TodayPage() {
           <span className="caption">{dateStr}</span>
           <h1 className="page-h" style={{ marginTop: 4 }}>{greet}, {name}.</h1>
           <p className="muted small" style={{ margin: 0 }}>Your day at a glance — tasks, approvals, meetings.</p>
-          <div className="stats" aria-label="Today summary" style={{ marginTop: 12, marginBottom: 0 }}>
-            <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Due today</div></div>
-            <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals</div></div>
-            <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
-            <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Done</div></div>
+          <div className="stats play-stats" aria-label="Today summary" style={{ marginTop: 12, marginBottom: 0 }}>
+            <div className="stat stat-peach"><div className="n">{dueToday.length}</div><div className="l">Due today</div></div>
+            <div className="stat stat-lav"><div className="n">{appr.length}</div><div className="l">Approvals</div></div>
+            <div className="stat stat-mint"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
+            <div className="stat stat-sky"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Done</div></div>
           </div>
         </div>
       )}
 
       {hero === 't3' && (
-        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
-          <div>
-            <span className="caption">Your {wsLabel} command center</span>
-            <h1 className="display" style={{ margin: '4px 0 0' }}>{greet}, {name}.</h1>
-            <p className="muted small" style={{ margin: '4px 0 0' }}>{dateStr} · {dueToday.length} due · {appr.length} waiting · Next meeting 10:30</p>
-          </div>
-          <div className="row" style={{ flex: 'none', marginTop: 18 }}>
-            <a href="#ask-remy"><button className="btn primary">Ask Remy</button></a>
+        <div className="t3-playful">
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+            <div>
+              <span className="t3-kicker">✦ Your {wsLabel} command center</span>
+              <h1 className="display" style={{ margin: '6px 0 0' }}>{greet}, {name}.</h1>
+              <div className="t3-pills">
+                <span className="t3-pill">{dateStr}</span>
+                <span className="t3-pill t3-peach">{dueToday.length} due</span>
+                <span className="t3-pill t3-lav">{appr.length} waiting</span>
+                <span className="t3-pill t3-mint">Next meeting 10:30</span>
+              </div>
+            </div>
+            <div className="row" style={{ flex: 'none', marginTop: 22 }}>
+              <a href="#ask-remy"><button className="btn primary t3-cta">Ask Remy →</button></a>
+            </div>
           </div>
         </div>
       )}
@@ -245,17 +252,17 @@ export default function TodayPage() {
         <>
           <h2 className="section-h">Your day at a glance</h2>
           <p className="section-sub">Tasks due today, meetings, approvals, and recent activity.</p>
-          <div className="stats" aria-label="Today summary">
-            <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
-            <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
-            <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
-            <div className="stat"><div className="n">{running}</div><div className="l">Workflows running</div></div>
-            <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
+          <div className="stats play-stats" aria-label="Today summary">
+            <div className="stat stat-peach"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
+            <div className="stat stat-lav"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
+            <div className="stat stat-mint"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
+            <div className="stat stat-sky"><div className="n">{running}</div><div className="l">Workflows running</div></div>
+            <div className="stat stat-rose"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
           </div>
         </>
       )}
 
-      <div className="card" id="ask-remy" aria-label="Ask Remy">
+      <div className="card play-ask" id="ask-remy" aria-label="Ask Remy">
         <b>How can I help you today?</b>
         <p className="muted small" style={{ margin: '2px 0 0' }}>Ask Remy to handle anything below — you&apos;re in control.</p>
         <div className="row" style={{ marginTop: 8, flexWrap: 'nowrap' }}>
