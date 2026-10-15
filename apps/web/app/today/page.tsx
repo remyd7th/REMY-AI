@@ -53,6 +53,7 @@ export default function TodayPage() {
   const [denied, setDenied] = useState(false);
   const [delegateFor, setDelegateFor] = useState<string | null>(null);
   const [delegateName, setDelegateName] = useState('');
+  const [hero, setHero] = useState<'t1' | 't2' | 't3'>('t1');
 
   // Command bar
   const [cmd, setCmd] = useState('');
@@ -196,25 +197,65 @@ export default function TodayPage() {
 
   return (
     <div>
-      <p className="caption">Your {wsLabel} command center</p>
-      <h1 className="display" style={{ marginBottom: 0 }}>{greet}, {name}.</h1>
-      <p style={{ fontSize: 17, fontWeight: 700, margin: '2px 0', color: 'var(--remy-heading)' }}>Welcome to Remy AI.</p>
-      <p className="muted">Here&apos;s what needs your attention today, and what Remy can help you accomplish.</p>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span className="muted small">{dateStr}</span>
+      <div className="tabs" aria-label="Hero preview">
+        <button aria-selected={hero === 't1'} onClick={() => setHero('t1')}>T1 Quiet</button>
+        <button aria-selected={hero === 't2'} onClick={() => setHero('t2')}>T2 Summary card</button>
+        <button aria-selected={hero === 't3'} onClick={() => setHero('t3')}>T3 Focus + action</button>
       </div>
 
-      <h2 className="section-h">Your day at a glance</h2>
-      <p className="section-sub">Tasks due today, meetings, approvals, and recent activity.</p>
-      <div className="stats" aria-label="Today summary">
-        <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
-        <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
-        <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
-        <div className="stat"><div className="n">{running}</div><div className="l">Workflows running</div></div>
-        <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
-      </div>
+      {hero === 't1' && (
+        <>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span className="caption">Your {wsLabel} command center</span>
+            <span className="muted small">{dateStr}</span>
+          </div>
+          <h1 className="display" style={{ marginBottom: 0 }}>{greet}, {name}.</h1>
+          <p className="muted">{dueToday.length} tasks due today · {appr.length} approvals waiting · {meetings.length} meetings. Here is what needs you first.</p>
+        </>
+      )}
 
-      <div className="card" aria-label="Ask Remy">
+      {hero === 't2' && (
+        <div className="card">
+          <span className="caption">{dateStr}</span>
+          <h1 className="page-h" style={{ marginTop: 4 }}>{greet}, {name}.</h1>
+          <p className="muted small" style={{ margin: 0 }}>Your day at a glance — tasks, approvals, meetings.</p>
+          <div className="stats" aria-label="Today summary" style={{ marginTop: 12, marginBottom: 0 }}>
+            <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Due today</div></div>
+            <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals</div></div>
+            <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
+            <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Done</div></div>
+          </div>
+        </div>
+      )}
+
+      {hero === 't3' && (
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+          <div>
+            <span className="caption">Your {wsLabel} command center</span>
+            <h1 className="display" style={{ margin: '4px 0 0' }}>{greet}, {name}.</h1>
+            <p className="muted small" style={{ margin: '4px 0 0' }}>{dateStr} · {dueToday.length} due · {appr.length} waiting · Next meeting 10:30</p>
+          </div>
+          <div className="row" style={{ flex: 'none', marginTop: 18 }}>
+            <a href="#ask-remy"><button className="btn primary">Ask Remy</button></a>
+          </div>
+        </div>
+      )}
+
+      {hero !== 't2' && (
+        <>
+          <h2 className="section-h">Your day at a glance</h2>
+          <p className="section-sub">Tasks due today, meetings, approvals, and recent activity.</p>
+          <div className="stats" aria-label="Today summary">
+            <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
+            <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
+            <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
+            <div className="stat"><div className="n">{running}</div><div className="l">Workflows running</div></div>
+            <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
+          </div>
+        </>
+      )}
+
+      <div className="card" id="ask-remy" aria-label="Ask Remy">
         <b>How can I help you today?</b>
         <p className="muted small" style={{ margin: '2px 0 0' }}>Ask Remy to handle anything below — you&apos;re in control.</p>
         <div className="row" style={{ marginTop: 8, flexWrap: 'nowrap' }}>
