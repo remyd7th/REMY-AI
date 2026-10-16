@@ -35,19 +35,17 @@ const ICONS: Record<string, ReactNode> = {
   bell: <Icon d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M10 21a2 2 0 0 0 4 0" />,
 };
 
-/** Sidebar order (exact): Chat, Tasks, Calendar, Approvals, Emails,
- *  Follow-ups, Documents, Activity, Integrations. Settings lives at the bottom. */
-const SIDE: [string, string][] = [
-  ['Chat', '/chat'],
-  ['Tasks', '/tasks'],
-  ['Calendar', '/calendar'],
-  ['Approvals', '/approvals'],
-  ['Emails', '/emails'],
-  ['Follow-ups', '/followups'],
-  ['Documents', '/documents'],
-  ['Activity', '/activity'],
-  ['Integrations', '/integrations'],
+/** Sidebar order, grouped by workflow: daily workspace, review queue,
+ *  organized library, system. Every primary destination lives here exactly
+ *  once — the old Today|Workflow tab strip is retired in favor of this. */
+const GROUPS: { label: string; items: [string, string][] }[] = [
+  { label: 'Workspace', items: [['Today', '/today'], ['Chat', '/chat'], ['Tasks', '/tasks'], ['Calendar', '/calendar']] },
+  { label: 'Review', items: [['Approvals', '/approvals'], ['Workflows', '/workflows'], ['Follow-ups', '/followups']] },
+  { label: 'Organize', items: [['Emails', '/emails'], ['Documents', '/documents'], ['Activity', '/activity']] },
+  { label: 'System', items: [['Integrations', '/integrations'], ['Settings', '/settings']] },
 ];
+
+/** @deprecated Kept for compatibility; sidebar groups replaced the tab strip. */
 
 const SEARCH_INDEX: [string, string][] = [
   ['Today dashboard', '/today'],
@@ -63,6 +61,7 @@ const SEARCH_INDEX: [string, string][] = [
   ['Permissions', '/permissions'],
   ['Integrations', '/integrations'],
   ['Settings', '/settings'],
+  ['New workspace', '/workspaces/new'],
   ['Get started', '/get-started'],
   ['Sign in', '/signin'],
 ];
@@ -73,23 +72,10 @@ function isActive(path: string, href: string) {
   return path.startsWith(href);
 }
 
-/** Today | Workflow tabs — rendered below the global header, above page content. */
+/** Today | Workflow tabs — retired: both destinations now live in the grouped
+ *  sidebar. Kept exported so older imports keep compiling. */
 export function TopTabs() {
-  const path = usePathname();
-  const tabs: [string, string][] = [['Today', '/today'], ['Workflow', '/workflows']];
-  return (
-    <nav className="toptabs" aria-label="Primary">
-      {tabs.map(([label, href]) => {
-        const key = label === 'Today' ? 'today' : 'workflow';
-        const active = isActive(path, href);
-        return (
-          <a key={href} href={href} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
-            <span aria-hidden style={{ display: 'inline-flex' }}>{ICONS[key]}</span> {label}
-          </a>
-        );
-      })}
-    </nav>
-  );
+  return null;
 }
 
 export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNavigate: () => void }) {
@@ -97,14 +83,14 @@ export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNav
   const notify = useNotificationsOptional();
   const approvals = notify?.pendingApprovals ?? 0;
   const chatUnread = notify?.chatUnreadTotal ?? 0;
+  const iconKey: Record<string, string> = {
+    today: 'today', chat: 'chat', tasks: 'tasks', calendar: 'calendar', approvals: 'approvals',
+    workflows: 'workflow', followups: 'followups', emails: 'emails', documents: 'documents',
+    activity: 'activity', integrations: 'integrations', settings: 'settings',
+  };
   const link = ([label, href]: [string, string]) => {
     const key = label.toLowerCase().replace(/[^a-z]/g, '');
-    const iconKey: Record<string, string> = {
-      chat: 'chat', tasks: 'tasks', calendar: 'calendar', approvals: 'approvals',
-      emails: 'emails', followups: 'followups', documents: 'documents',
-      activity: 'activity', integrations: 'integrations',
-    };
-    const active = isActive(path, href);
+    const active = isActive(path, href) || (href === '/settings' && path.startsWith('/permissions'));
     const badge =
       href === '/approvals' && approvals > 0 ? (
         <span className="side-badge side-badge-approval" aria-hidden>{fmtCount(approvals)}</span>
@@ -126,22 +112,16 @@ export function Sidebar({ mobileOpen, onNavigate }: { mobileOpen: boolean; onNav
       </a>
     );
   };
-  const settingsActive = isActive(path, '/settings') || isActive(path, '/permissions');
   return (
     <>
-      <nav className="side-nav" aria-label="Workspace">
-        {SIDE.map(link)}
-      </nav>
-      <div className="side-settings">
-        <div className="side-section-label">General</div>
-        <nav className="side-nav" aria-label="General">
-          <a className={`sidelink${settingsActive ? ' active' : ''}`} href="/settings"
-            aria-current={settingsActive ? 'page' : undefined} onClick={onNavigate}>
-            <span className="sic">{ICONS.settings}</span>
-            <span className="side-label">Settings</span>
-          </a>
-        </nav>
-      </div>
+      {GROUPS.map((group) => (
+        <div key={group.label}>
+          <div className="side-section-label">{group.label}</div>
+          <nav className="side-nav" aria-label={group.label}>
+            {group.items.map(link)}
+          </nav>
+        </div>
+      ))}
     </>
   );
 }
@@ -201,9 +181,19 @@ export function SessionArea() {
   }
   const name = session.user.name ?? session.user.email ?? 'You';
   const initials = name.split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('');
+
+  async function logout() {
+    await fetch(`${API}/auth/sign-out`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: window.location.origin },
+      credentials: 'include',
+    }).catch(() => {});
+    window.location.href = '/signin';
+  }
+
   return (
     <>
-      <a className="bell" href="/activity" aria-label={`Notifications${pending > 0 ? `, ${pending} pending approvals` : ''}`}>
+      <a className="bell" href="/approvals" aria-label={`Approvals${pending > 0 ? `, ${pending} pending` : ''}`} title="Approvals">
         <span aria-hidden style={{ display: 'inline-flex', width: 18, height: 18 }}>{ICONS.bell}</span>
         {pending > 0 && <span className="dot-alert" aria-hidden />}
       </a>
@@ -211,6 +201,9 @@ export function SessionArea() {
         <span className="avatar" aria-hidden>{initials}</span>
         <span>{name.split(' ')[0]}</span>
       </a>
+      <button className="btn small" onClick={logout} aria-label="Sign out">
+        Sign out
+      </button>
     </>
   );
 }

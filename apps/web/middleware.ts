@@ -17,6 +17,8 @@ const PROTECTED = [
   '/settings',
   '/permissions',
   '/workspaces',
+  '/admin',
+  '/organization-admin',
 ];
 
 /** Cookie name fragments Better Auth uses for its session cookie. */
@@ -24,6 +26,12 @@ const SESSION_HINTS = ['session_token', 'better-auth'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  // Dead index route: the only workspace action is creation / dashboard.
+  if (pathname === '/workspaces') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/today';
+    return NextResponse.redirect(url);
+  }
   const guarded = PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   if (!guarded) return NextResponse.next();
 

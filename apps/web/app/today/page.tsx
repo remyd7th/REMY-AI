@@ -5,6 +5,7 @@ import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 import { onWorkspaceChange } from '../../lib/workspace';
 import { Empty, ApprovalCard } from '../../components/ui';
 import { emitApprovalsChanged } from '../../lib/notifications';
+import { DEFAULT_DISPLAY, formatDateLine, loadDisplayPrefs } from '../../lib/displayPrefs';
 
 interface Task { id: string; title: string; status: string; priority: string; dueAt: string | null; assignee?: string | null; source?: string }
 interface Meeting { id: string; title: string; startsAt: string; endsAt: string }
@@ -167,13 +168,17 @@ export default function TodayPage() {
     load();
   }
 
+  // Regional preferences (Settings → Working preferences) for the header date.
+  const [dp, setDp] = useState(DEFAULT_DISPLAY);
+  useEffect(() => { loadDisplayPrefs(currentUserId()).then(setDp).catch(() => {}); }, []);
+
   if (denied) {
     return <div className="card"><b>Please sign in.</b><p className="muted">Your session expired or is missing.</p><a href="/signin"><button className="btn primary">Sign in →</button></a></div>;
   }
 
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const dateStr = new Date().toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  const dateStr = formatDateLine(new Date(), dp);
   const tasks = data?.tasks ?? [];
   const overdueIds = new Set<string>();
   const now = new Date();
@@ -195,26 +200,36 @@ export default function TodayPage() {
   const featured = appr[0] ?? null;
 
   return (
-    <div>
-      <p className="caption">Your {wsLabel} command center</p>
-      <h1 className="display" style={{ marginBottom: 0 }}>{greet}, {name}.</h1>
-      <p style={{ fontSize: 17, fontWeight: 700, margin: '2px 0', color: 'var(--remy-heading)' }}>Welcome to Remy AI.</p>
-      <p className="muted">Here&apos;s what needs your attention today, and what Remy can help you accomplish.</p>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span className="muted small">{dateStr}</span>
+    <div className="today-play">
+      <div className="t3-playful">
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+          <div>
+            <span className="t3-kicker">✦ Your {wsLabel} command center</span>
+            <h1 className="display" style={{ margin: '6px 0 0' }}>{greet}, {name}.</h1>
+            <div className="t3-pills">
+              <span className="t3-pill">{dateStr}</span>
+              <span className="t3-pill t3-peach">{dueToday.length} due</span>
+              <span className="t3-pill t3-lav">{appr.length} waiting</span>
+              <span className="t3-pill t3-mint">Next meeting 10:30</span>
+            </div>
+          </div>
+          <div className="row" style={{ flex: 'none', marginTop: 22 }}>
+            <a href="#ask-remy"><button className="btn primary t3-cta">Ask Remy →</button></a>
+          </div>
+        </div>
       </div>
 
       <h2 className="section-h">Your day at a glance</h2>
       <p className="section-sub">Tasks due today, meetings, approvals, and recent activity.</p>
-      <div className="stats" aria-label="Today summary">
-        <div className="stat"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
-        <div className="stat"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
-        <div className="stat"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
-        <div className="stat"><div className="n">{running}</div><div className="l">Workflows running</div></div>
-        <div className="stat"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
+      <div className="stats play-stats" aria-label="Today summary">
+        <div className="stat stat-peach"><div className="n">{dueToday.length}</div><div className="l">Tasks due today</div></div>
+        <div className="stat stat-lav"><div className="n">{appr.length}</div><div className="l">Approvals waiting</div></div>
+        <div className="stat stat-mint"><div className="n">{meetings.length}</div><div className="l">Meetings</div></div>
+        <div className="stat stat-sky"><div className="n">{running}</div><div className="l">Workflows running</div></div>
+        <div className="stat stat-rose"><div className="n">{data?.progress.done ?? 0}</div><div className="l">Completed actions</div></div>
       </div>
 
-      <div className="card" aria-label="Ask Remy">
+      <div className="card play-ask" id="ask-remy" aria-label="Ask Remy">
         <b>How can I help you today?</b>
         <p className="muted small" style={{ margin: '2px 0 0' }}>Ask Remy to handle anything below — you&apos;re in control.</p>
         <div className="row" style={{ marginTop: 8, flexWrap: 'nowrap' }}>

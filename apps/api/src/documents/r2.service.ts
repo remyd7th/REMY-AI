@@ -1,6 +1,6 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Cloudflare R2 via S3-compatible API. Inactive until R2_* env is set —
@@ -69,6 +69,12 @@ export class R2Service {
     return getSignedUrl(client, new GetObjectCommand({ Bucket: this.bucket, Key: key }), {
       expiresIn: 900,
     });
+  }
+
+  /** Best-effort object removal; callers decide whether a failure is fatal. */
+  async deleteObject(key: string): Promise<void> {
+    const client = this.needClient();
+    await client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 
   /** Fetch an object's bytes (for email attachments). Throws 503 when unconfigured. */

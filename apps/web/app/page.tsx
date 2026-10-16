@@ -5,12 +5,6 @@ import { API } from '../lib/api';
 
 interface Session { user?: { name?: string; email?: string } }
 
-const FEATURES = [
-  { icon: '✦', title: 'A calmer start to the day', text: 'See your priorities, meetings and follow-ups together, so the next step is clear.' },
-  { icon: '↗', title: 'From busywork to done', text: 'Ask Remy to organize tasks, prepare a meeting or draft a thoughtful reply.' },
-  { icon: '◷', title: 'Follow through with confidence', text: 'Keep important promises and open loops from slipping through the cracks.' },
-];
-
 export default function Landing() {
   const [session, setSession] = useState<Session | null>(null);
 
@@ -23,65 +17,58 @@ export default function Landing() {
     return () => { active = false; };
   }, []);
 
+  const ctaHref = session ? '/today' : '/get-started';
+
   return (
-    <div className="landing-page">
-      <header className="landing-nav">
-        <a className="landing-brand" href="/" aria-label="Remy AI home">
-          <span className="landing-brand-mark" aria-hidden>✦</span> Remy<span>AI</span>
-        </a>
-        <nav aria-label="Account">
-          <a className="landing-nav-link" href="/signin">Sign in</a>
-          <a className="btn landing-nav-cta" href={session ? '/today' : '/get-started'}>
-            {session ? 'Open workspace' : 'Get started'}
-          </a>
-        </nav>
-      </header>
+    <div className="landing-page landing-dark">
+      <div className="dark-bg" aria-hidden />
+      <div className="dark-wrap">
+        <header className="dark-nav">
+          <a className="dark-brand" href="/" aria-label="Remy AI home">✦ Remy AI</a>
+          <nav aria-label="Account">
+            <a className="dark-pill" href="/signin">Sign in</a>
+            <a className="dark-pill dark-pill-solid" href={ctaHref}>{session ? 'Open workspace →' : 'Get started →'}</a>
+          </nav>
+        </header>
 
-      <main className="landing-content">
-        <section className="landing-hero" aria-labelledby="landing-title">
-          <div className="landing-copy">
-            <span className="landing-eyebrow"><span className="landing-eyebrow-dot" /> YOUR CALM, CAPABLE WORK PARTNER</span>
-            <h1 id="landing-title">Make room for the work <em>that matters.</em></h1>
-            <p className="landing-lede">
-              Remy brings your tasks, meetings and follow-ups into focus, then helps you move each one forward. You stay in charge of every decision.
-            </p>
-            <div className="landing-actions">
-              <a className="landing-primary" href={session ? '/today' : '/get-started'}>
-                {session ? 'Open my workspace' : 'Get started for free'} <span aria-hidden>→</span>
-              </a>
-              <a className="landing-secondary" href="/signin">I already have an account</a>
+        <main>
+          <section className="dark-hero" aria-labelledby="landing-title">
+            <div className="dark-eyebrow">✦ AI WORK ASSISTANT FOR EA&apos;S &amp; TEAMS</div>
+            <h1 id="landing-title">Your work, <span>on autopilot.</span> You in control.</h1>
+            <p className="dark-lede">Chat, voice, and dashboard in one intelligent assistant. Tasks, calendar, email, docs and follow-ups — handled.</p>
+            <div className="dark-cta">
+              <a className="dark-btn dark-btn-primary" href={ctaHref}>{session ? 'Open my workspace' : 'Start free today'}</a>
+              <a className="dark-btn dark-btn-secondary" href="/signin">▶ Live demo</a>
             </div>
-            <div className="landing-trust"><span aria-hidden>✓</span> Nothing is sent, scheduled or shared without your rule.</div>
-          </div>
+            <div className="dark-sub">✓ No credit card · ✓ 2-min setup · ✓ Cancel anytime</div>
+          </section>
 
-          <div className="landing-preview" aria-label="Preview of the Remy daily briefing">
-            <div className="preview-topline"><span>MONDAY · YOUR BRIEFING</span><span className="preview-live"><i /> READY FOR YOU</span></div>
-            <h2>Good morning.</h2>
-            <p className="preview-intro">Here&apos;s what deserves your attention today.</p>
-            <div className="preview-item preview-item-featured"><span className="preview-icon violet">◷</span><div><b>Prepare for your 10:30</b><small>Quarterly planning · 3 people</small></div><span className="preview-arrow">↗</span></div>
-            <div className="preview-item"><span className="preview-icon yellow">✓</span><div><b>2 priority tasks</b><small>One due before lunch</small></div></div>
-            <div className="preview-item"><span className="preview-icon blue">↩</span><div><b>1 follow-up to send</b><small>Draft ready for your review</small></div></div>
-            <div className="preview-footer"><span className="preview-spark">✦</span><span><b>A little more focus.</b><small> Your day, with the details handled.</small></span></div>
-          </div>
-          <div className="landing-orbit orbit-one" aria-hidden>✦</div>
-          <div className="landing-orbit orbit-two" aria-hidden>✳</div>
-        </section>
+          <section className="dark-dash" aria-label="Preview of Remy today">
+            <div className="dark-dash-bar"><span className="dark-dot" /><span className="dark-dot" /><span className="dark-dot" /><span className="dark-url">remy.ai / today</span></div>
+            <div className="dark-dash-body">
+              <div className="dark-chat">
+                <div className="dark-chat-label">TODAY&apos;S CHAT</div>
+                <div className="dark-msg">You: organize my tasks for tomorrow</div>
+                <div className="dark-msg dark-msg-ai">Remy: Done — 3 priorities sorted, 2 meetings prepped, 1 draft ready for review. ✓</div>
+                <div className="dark-msg dark-msg-ai">Remy: Shall I send the follow-up to Sarah?</div>
+              </div>
+              <div className="dark-stats">
+                <div className="dark-stat"><b>12</b><br /><small>tasks organized today</small></div>
+                <div className="dark-stat"><b>3</b><br /><small>meetings prepped</small></div>
+                <div className="dark-stat"><b>100%</b><br /><small>nothing slipped</small></div>
+              </div>
+            </div>
+          </section>
 
-        <section className="landing-benefits" aria-label="What Remy helps with">
-          <div className="landing-section-heading"><span>LESS TO JUGGLE. MORE ROOM TO THINK.</span><h2>Your workday, working better.</h2></div>
-          <div className="landing-feature-grid">
-            {FEATURES.map((feature) => (
-              <article className="landing-feature" key={feature.title}>
-                <span className="landing-feature-icon" aria-hidden>{feature.icon}</span>
-                <h3>{feature.title}</h3>
-                <p>{feature.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+          <section className="dark-grid" aria-label="What Remy helps with">
+            <div><span>💬</span><h3>AI Chat + Voice</h3><p>Natural-language instructions, hands-free actions.</p></div>
+            <div><span>📅</span><h3>Calendar &amp; Email</h3><p>Scheduling, conflicts, summaries and drafts.</p></div>
+            <div><span>🛡️</span><h3>Permission-first</h3><p>Nothing sent without your approval.</p></div>
+          </section>
 
-        <footer className="landing-footer"><span>Remy AI</span><span>Organize. Assist. Suggest. You decide.</span></footer>
-      </main>
+          <footer className="dark-footer"><span>Remy AI — Dark Modern</span><span>Organize. Assist. Suggest. You decide.</span></footer>
+        </main>
+      </div>
     </div>
   );
 }

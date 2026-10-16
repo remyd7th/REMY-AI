@@ -45,11 +45,19 @@ export class LlmService {
   }
 
   // Conversational fallback only — structured replies are composed by tools.
-  async complete(system: string, user: string, timeoutMs = 60000): Promise<Completion> {
-    const messages = [
-      { role: 'system', content: system },
-      { role: 'user', content: user },
-    ];
+  async complete(
+    system: string,
+    history: { role: 'user' | 'assistant'; content: string }[],
+    timeoutMs = 60000,
+  ): Promise<Completion> {
+    // Keep the latest context within a predictable token budget. The current
+    // message is already included because chat persists it before generation.
+    const context = history.slice(-20).map((message) => ({
+      role: message.role,
+      content: message.content.slice(-6000),
+    }));
+    while (context.length > 1 && context.reduce((total, item) => total + item.content.length, 0) > 24000) context.shift();
+    const messages = [{ role: 'system', content: system }, ...context];
     try {
       return { text: await this.groq(messages, timeoutMs), via: `groq:${this.groqModel}` };
     } catch {

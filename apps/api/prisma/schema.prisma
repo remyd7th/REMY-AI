@@ -45,6 +45,7 @@ model Workspace {
   followups Followup[]
   memories  Memory[]
   approvals Approval[]
+  conversations ChatConversation[]
 }
 
 model Task {
@@ -53,9 +54,12 @@ model Task {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   userId      String
   title       String
+  description String    @default("")
   status      String    @default("open") // open|done|overdue
-  priority    String    @default("normal") // low|normal|high
+  priority    String    @default("normal") // low|normal|high|urgent
   dueAt       DateTime?
+  remindAt    DateTime?
+  completedAt DateTime?
   recurrence  String?
   parentId    String?
   assignee    String?
@@ -65,6 +69,34 @@ model Task {
 
   @@index([workspaceId, status])
   @@index([workspaceId, dueAt])
+  @@index([workspaceId, remindAt, status])
+}
+
+model ChatConversation {
+  id          String        @id @default(cuid())
+  workspaceId String
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String        @default("New conversation")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  messages    ChatMessage[]
+
+  @@index([userId, workspaceId, updatedAt])
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user|assistant
+  content        String
+  actions        Json             @default("[]")
+  clientMessageId String?         @unique
+  replyToId      String?          @unique
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model Event {
@@ -113,6 +145,8 @@ model Document {
   title       String
   type        String    @default("doc")
   storageKey  String // Cloudflare R2 key
+  mimeType    String?
+  size        Int?
   summary     String?
   extracted   Json      @default("{}")
   createdAt   DateTime  @default(now())
@@ -229,8 +263,20 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  suspendedAt   DateTime?
+  suspensionReason String?
+  platformRole  String    @default("user")
+  lastLoginAt   DateTime?
+  lastActivityAt DateTime?
   sessions      Session[]
   accounts      Account[]
+  memberships   OrganizationMembership[]
+  securityEvents SecurityEvent[]
+
+  @@index([lastActivityAt])
+  @@index([lastLoginAt])
+  @@index([suspendedAt])
+  @@index([createdAt])
 }
 
 model Session {
@@ -243,6 +289,49 @@ model Session {
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships OrganizationMembership[]
+  securityEvents SecurityEvent[]
+
+  @@index([name])
+}
+
+model OrganizationMembership {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([userId, role])
+}
+
+model SecurityEvent {
+  id             String        @id @default(cuid())
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorId        String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  type           String
+  outcome        String        @default("success")
+  details        Json          @default("{}")
+  createdAt      DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([type, createdAt])
 }
 
 model Account {

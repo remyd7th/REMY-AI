@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3 Compact Command Bar</title>
+<style>*{box-sizing:border-box;margin:0}body{font-family:Inter,system-ui;background:#FAFAF9;color:#1C1917}
+.top{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#1C1917;color:#fff;position:sticky;top:0}
+.cmdk{flex:1;max-width:560px;margin:0 auto;background:#292524;border:1px solid #44403C;border-radius:10px;padding:9px 14px;color:#A8A29E;font-size:14px;display:flex;gap:10px}.cmdk b{margin-left:auto;background:#44403C;border-radius:6px;padding:2px 8px;font-size:12px}
+.layout{display:grid;grid-template-columns:64px 1fr;min-height:calc(100vh - 53px)}
+.rail{background:#1C1917;color:#A8A29E;padding:12px 8px;display:flex;flex-direction:column;gap:6px;align-items:center}.rail span{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}.rail .on{background:#fff;color:#1C1917}
+.main{padding:28px;max-width:1020px}.hero{display:flex;justify-content:space-between;align-items:end}.hero h1{font-size:30px;letter-spacing:-.02em}
+.grid{display:grid;grid-template-columns:1fr 320px;gap:16px;margin-top:18px}.card{background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.04)}.approve{border-left:4px solid #DC2626}
+</style></head><body>
+<div class="top"><div style="font-weight:800">✦ REMY</div><div class="cmdk">✦ Ask anything, or type a command… <b>⌘K</b></div><div style="display:flex;gap:8px;align-items:center;font-size:13px"><span>🔔•</span><span style="background:#fff;color:#1C1917;border-radius:99px;padding:6px 12px;font-weight:700">R Remy</span></div></div>
+<div class="layout"><div class="rail"><span class="on">☀</span><span>💬</span><span>✓</span><span>📅</span><span>🛡</span><span>⚙</span></div>
+<div class="main"><div class="hero"><div><div style="font-size:12px;font-weight:700;color:#78716C">TUESDAY · FOCUS MODE</div><h1>Good morning.</h1><p style="color:#57534E">3 priorities · 1 approval · next meeting 10:30</p></div><div style="font-size:13px;color:#57534E">Tue Oct 15 →</div></div>
+<div class="grid"><div><div class="card"><b>⚡ Priority queue</b><div style="margin-top:8px;font-size:14px">○ Prepare 10:30 brief <span style="float:right;background:#FEE2E2;color:#991B1B;border-radius:99px;padding:2px 8px;font-size:12px">HIGH</span></div><div style="margin-top:8px;font-size:14px">○ Send follow-up to Sarah</div></div><div class="card" style="margin-top:12px"><b>✦ Remy activity</b><p style="color:#57534E;font-size:13px">Draft ready · Inbox sorted · Brief prepped</p></div></div>
+<div><div class="card approve"><b>Your call • 1 waiting</b><p style="font-size:13px;color:#57534E">Send draft to Sarah?</p><div style="display:flex;gap:8px;margin-top:10px"><span style="background:#1C1917;color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700">Approve</span><span style="border:1px solid #E7E5E4;border-radius:8px;padding:8px 14px;font-size:13px">Deny</span></div></div></div></div>
+</div></div>
+<div style="text-align:center;padding:16px;color:#78716C;font-size:13px">H3 — Compact command bar + icon rail</div>
+</body></html>

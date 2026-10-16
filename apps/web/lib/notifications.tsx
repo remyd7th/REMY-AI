@@ -38,6 +38,7 @@ const Ctx = createContext<NotifyState | null>(null);
 
 export const APPROVALS_EVENT = 'remy:approvals-changed';
 export const CHAT_DONE_EVENT = 'remy:chat-done';
+export const NOTIF_PREFS_EVENT = 'remy:notif-prefs-changed';
 export const ACTIVE_CONVO_KEY = 'remy-active-convo';
 const UNREAD_KEY = 'remy-chat-unread';
 const SEEN_KEY = 'remy-seen-chat-msgs';
@@ -90,6 +91,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [chatUnreadByConvo, setChatUnreadByConvo] = useState<Record<string, number>>({});
   const [toasts, setToasts] = useState<Toast[]>([]);
+  // Notification preferences (Settings → Working preferences → Notifications).
+  // Gates real alerts: approval toasts, chat-reply toasts, approval poll cadence.
+  const [notifPrefs, setNotifPrefs] = useState({ approvals: true, chat: true, pollMs: 20000 });
+  const notifRef = useRef(notifPrefs);
+  notifRef.current = notifPrefs;
   const seenRef = useRef<Set<string>>(new Set());
   const toastIdsRef = useRef<Set<string>>(new Set());
   const prevPendingRef = useRef(0);
@@ -115,6 +121,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const pushToast = useCallback((t: Omit<Toast, 'id' | 'at'> & { id?: string }) => {
+    const prefs = notifRef.current;
+    if (t.type === 'approval' && !prefs.approvals) return;
+    if (t.type === 'chat' && !prefs.chat) return;
     const id = t.id ?? `${t.type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     if (toastIdsRef.current.has(id)) return;
     toastIdsRef.current.add(id);
@@ -154,6 +163,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [pushToast]);
 
   useEffect(() => {
+    let active = true;
+    async function loadPrefs() {
+      try {
+        const rows = await fetch(
+          `${API}/memories?userId=${currentUserId()}&workspaceId=${currentWorkspace()}`,
+          { credentials: 'include', cache: 'no-store' },
+        ).then((r) => (r.ok ? r.json() : [])) as { key: string; value: string; workspaceId: string | null }[];
+        if (!active || !Array.isArray(rows)) return;
+        const ws = currentWorkspace();
+        const get = (k: string) =>
+          rows.find((r) => r.key === k && r.workspaceId === ws)?.value
+          ?? rows.find((r) => r.key === k)?.value;
+        const poll = Number(get('notif_poll_ms'));
+        setNotifPrefs({
+          approvals: get('notif_approvals') !== 'false',
+          chat: get('notif_chat') !== 'false',
+          pollMs: [10000, 20000, 60000].includes(poll) ? poll : 20000,
+        });
+      } catch { /* offline — keep defaults */ }
+    }
+    loadPrefs();
+    const onPrefs = () => loadPrefs();
+    window.addEventListener(NOTIF_PREFS_EVENT, onPrefs);
+    return () => { active = false; window.removeEventListener(NOTIF_PREFS_EVENT, onPrefs); };
+  }, []);
+
+  useEffect(() => {
     refreshApprovals();
     const onChanged = () => refreshApprovals();
     const onWs = () => refreshApprovals();
@@ -161,14 +197,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     window.addEventListener(APPROVALS_EVENT, onChanged);
     window.addEventListener(WS_EVENT, onWs);
     window.addEventListener('focus', onFocus);
-    const t = window.setInterval(refreshApprovals, 20000);
+    const t = window.setInterval(refreshApprovals, notifPrefs.pollMs);
     return () => {
       window.removeEventListener(APPROVALS_EVENT, onChanged);
       window.removeEventListener(WS_EVENT, onWs);
       window.removeEventListener('focus', onFocus);
       window.clearInterval(t);
     };
-  }, [refreshApprovals]);
+  }, [refreshApprovals, notifPrefs.pollMs]);
 
   const markConvoRead = useCallback((convoId: string) => {
     const cur = loadUnread();
