@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API, storeUid } from '../../lib/api';
 import GoogleButton from '../../components/GoogleButton';
+import EmailPasswordForm from '../../components/EmailPasswordForm';
 import { InstallButton } from '../../lib/pwa';
 
 interface Session { user?: { id: string; name?: string; email?: string } }
@@ -74,9 +75,14 @@ export default function GetStartedPage() {
         {step === 0 && (
           <>
             <b>1 · Create account</b>
-            <p className="muted">One click with Google — connects calendar + Gmail and creates your profile.</p>
+            <p className="muted">One click with Google — connects calendar + Gmail and creates your profile. Or register with your name, email and password.</p>
             <GoogleButton callbackPath={`/get-started?next=${encodeURIComponent(next)}`} />
-            <p className="muted">Already have an account? <a href="/signin"><b>Sign in →</b></a></p>
+            <div className="row" style={{ alignItems: 'center', margin: '12px 0' }} aria-hidden>
+              <span style={{ flex: 1, borderTop: 'var(--remy-border)' }} />
+              <span className="muted small" style={{ padding: '0 10px' }}>or</span>
+              <span style={{ flex: 1, borderTop: 'var(--remy-border)' }} />
+            </div>
+            <EmailPasswordForm mode="signup" next={`/get-started?next=${encodeURIComponent(next)}`} />
             <div className="install-row">
               <span className="muted small">Prefer the app?</span> <InstallButton />
             </div>

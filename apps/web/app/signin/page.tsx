@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API, storeUid } from '../../lib/api';
 import GoogleButton from '../../components/GoogleButton';
+import EmailPasswordForm from '../../components/EmailPasswordForm';
 import { InstallButton } from '../../lib/pwa';
 
 interface Session { user?: { id: string; name?: string; email?: string } }
@@ -75,9 +76,14 @@ export default function SignInPage() {
       </div>
       <div className="card">
         <b>Sign in</b>
-        <p className="muted">Existing Remy account. One click with Google — no passwords.</p>
+        <p className="muted">Existing Remy account. Use Google, or your email and password.</p>
         <GoogleButton callbackPath={`/signin?next=${encodeURIComponent(next)}`} />
-        <p className="muted">New to Remy? <a href="/get-started"><b>Get started →</b></a></p>
+        <div className="row" style={{ alignItems: 'center', margin: '12px 0' }} aria-hidden>
+          <span style={{ flex: 1, borderTop: 'var(--remy-border)' }} />
+          <span className="muted small" style={{ padding: '0 10px' }}>or</span>
+          <span style={{ flex: 1, borderTop: 'var(--remy-border)' }} />
+        </div>
+        <EmailPasswordForm mode="signin" next={next} />
         <div className="install-row">
           <span className="muted small">Prefer the app?</span> <InstallButton />
         </div>

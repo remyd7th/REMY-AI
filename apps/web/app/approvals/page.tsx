@@ -83,8 +83,7 @@ export default function ApprovalsPage() {
       setNotice(Array.isArray(msg) ? msg.join(' ') : String(msg));
       return;
     }
-    const delivered = (json as { delivered?: unknown })?.delivered;
-    setNotice(`Sent — ${JSON.stringify(delivered)}`);
+    setNotice('Sent successfully.');
     load();
     emitApprovalsChanged();
   }

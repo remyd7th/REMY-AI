@@ -30,8 +30,8 @@ function typeKey(t: string): string {
   return k === 'teams' ? 'team' : k;
 }
 
-/** Workspace selector — sits at the top of the sidebar, visually distinct from Chat. */
-export default function WorkspaceBar() {
+/** Shared workspace list state: current id, grouped list, switcher. */
+export function useWorkspaces() {
   const [list, setList] = useState<Ws[]>([]);
   const [cur, setCur] = useState(DEMO_WORKSPACE);
 
@@ -59,6 +59,39 @@ export default function WorkspaceBar() {
     setCur(id);
     writeActiveId(id);
   }
+
+  return { list, cur, switchTo };
+}
+
+/** Compact header variant: current workspace at a glance, upper-right. */
+export function WorkspaceCompact() {
+  const { list, cur, switchTo } = useWorkspaces();
+  if (list.length === 0) return null;
+  const active = list.find((w) => w.id === cur);
+  return (
+    <label className="ws-compact" aria-label="Active workspace">
+      <span className="ws-dot" data-type={active ? typeKey(active.type) : 'personal'} aria-hidden />
+      <select value={cur} onChange={(e) => switchTo(e.target.value)} aria-label="Active workspace">
+        {TYPE_ORDER.map((t) => {
+          const group = list.filter((w) => typeKey(w.type) === t);
+          if (group.length === 0) return null;
+          return (
+            <optgroup key={t} label={metaOf(t).label}>
+              {group.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </optgroup>
+          );
+        })}
+        <option value="__new__">+ New workspace…</option>
+      </select>
+    </label>
+  );
+}
+
+/** Workspace selector — sits at the top of the sidebar, visually distinct from Chat. */
+export default function WorkspaceBar() {
+  const { list, cur, switchTo } = useWorkspaces();
 
   return (
     <div className="ws-side" aria-label="Workspace selector">

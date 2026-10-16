@@ -2,11 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import WorkspaceBar from './WorkspaceBar';
-import { Sidebar, SearchBox, SessionArea, TopTabs } from './Chrome';
+import WorkspaceBar, { WorkspaceCompact } from './WorkspaceBar';
+import { Sidebar, SearchBox, SessionArea } from './Chrome';
 import { InstallButton } from '../lib/pwa';
 
-const FULL_CHROME = ['/today', '/workflows', '/chat', '/tasks', '/calendar', '/approvals', '/emails', '/followups', '/documents', '/activity', '/integrations', '/settings', '/permissions', '/workspaces'];
+const FULL_CHROME = ['/today', '/workflows', '/chat', '/tasks', '/calendar', '/approvals', '/emails', '/followups', '/documents', '/activity', '/integrations', '/settings', '/permissions', '/workspaces', '/admin', '/organization-admin'];
 
 function useChrome(path: string): boolean {
   if (path === '/') return false;
@@ -42,6 +42,7 @@ export default function Shell({ children }: { children: ReactNode }) {
           </a>
           <SearchBox />
           <div className="cmd-right">
+            <WorkspaceCompact />
             <InstallButton />
             <SessionArea />
           </div>
@@ -54,7 +55,6 @@ export default function Shell({ children }: { children: ReactNode }) {
           <Sidebar mobileOpen={open} onNavigate={() => setOpen(false)} />
         </aside>
         <div className="content-col">
-          <TopTabs />
           <main id="main">{children}</main>
           <div className="footer">Remy AI · organize, assist, suggest, execute — you stay in control.</div>
         </div>

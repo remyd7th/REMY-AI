@@ -18,6 +18,7 @@ import { HealthModule } from './health/health.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { ActivityModule } from './activity/activity.module';
 import { TodayModule } from './today/today.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TodayModule } from './today/today.module';
     WorkflowsModule,
     ActivityModule,
     TodayModule,
+    AdminModule,
   ],
 })
 export class AppModule implements NestModule {
