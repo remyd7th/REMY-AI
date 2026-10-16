@@ -5,6 +5,7 @@ import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 import { onWorkspaceChange } from '../../lib/workspace';
 import { Empty, ApprovalCard } from '../../components/ui';
 import { emitApprovalsChanged } from '../../lib/notifications';
+import { DEFAULT_DISPLAY, formatDateLine, loadDisplayPrefs } from '../../lib/displayPrefs';
 
 interface Task { id: string; title: string; status: string; priority: string; dueAt: string | null; assignee?: string | null; source?: string }
 interface Meeting { id: string; title: string; startsAt: string; endsAt: string }
@@ -167,13 +168,17 @@ export default function TodayPage() {
     load();
   }
 
+  // Regional preferences (Settings → Working preferences) for the header date.
+  const [dp, setDp] = useState(DEFAULT_DISPLAY);
+  useEffect(() => { loadDisplayPrefs(currentUserId()).then(setDp).catch(() => {}); }, []);
+
   if (denied) {
     return <div className="card"><b>Please sign in.</b><p className="muted">Your session expired or is missing.</p><a href="/signin"><button className="btn primary">Sign in →</button></a></div>;
   }
 
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const dateStr = new Date().toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  const dateStr = formatDateLine(new Date(), dp);
   const tasks = data?.tasks ?? [];
   const overdueIds = new Set<string>();
   const now = new Date();

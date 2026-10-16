@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { API } from '../../lib/api';
 import { currentUserId, currentWorkspace } from '../../components/WorkspaceBar';
 import { onWorkspaceChange } from '../../lib/workspace';
+import { DEFAULT_DISPLAY, formatClockTime, formatDateLine, loadDisplayPrefs } from '../../lib/displayPrefs';
 
 interface Ev { id: string; title: string; startsAt: string; endsAt: string }
 
@@ -27,6 +28,9 @@ export default function CalendarPage() {
   const [now, setNow] = useState(() => new Date());
   const [view, setView] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
   const [sel, setSel] = useState(() => toDayKey(new Date()));
+  // Regional preferences (Settings → Working preferences) drive the live clock.
+  const [dp, setDp] = useState(DEFAULT_DISPLAY);
+  useEffect(() => { loadDisplayPrefs(currentUserId()).then(setDp).catch(() => {}); }, []);
 
   const Q = () => `workspaceId=${currentWorkspace()}&userId=${currentUserId()}`;
 
@@ -75,8 +79,8 @@ export default function CalendarPage() {
   const selEvents = (byDay.get(sel) ?? []).slice().sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const selDate = new Date(`${sel}T12:00:00`);
   const selLabel = selDate.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
-  const timeLabel = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-  const dateLabel = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  const timeLabel = formatClockTime(now, dp, true);
+  const dateLabel = formatDateLine(now, dp);
 
   function shiftMonth(delta: number) {
     setView((v) => {
