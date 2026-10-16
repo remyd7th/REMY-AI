@@ -32,7 +32,7 @@ function sanitize(raw: Record<string, string>): DisplayPrefs {
 export async function loadDisplayPrefs(userId: string): Promise<DisplayPrefs> {
   if (cache && Date.now() - cache.at < 5 * 60 * 1000) return cache.prefs;
   try {
-    const rows = await apif<{ key: string; value: string; workspaceId: string | null }[]>(
+    const rows = await apif<{ key: string; value: string; scope: string; workspaceId: string | null }[]>(
       `/memories?userId=${userId}&workspaceId=${currentWorkspace()}`,
     );
     const ws = currentWorkspace();
